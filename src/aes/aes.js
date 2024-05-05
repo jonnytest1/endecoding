@@ -36,7 +36,7 @@ function addSelect(secret, encoding, out, ref) {
     };
 }
 /**@type {Array<Encoding>} */
-var aes = [
+const aes = [
     {
         nameHTML: 'aes encrypt',
         title: "aes encrypt (iv,salt,data,tag)",

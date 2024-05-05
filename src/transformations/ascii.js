@@ -2,7 +2,7 @@
 /// <reference path="../endecoding.d.ts" />
 
 /**@type {Array<Encoding>} */
-var ascii = [
+const ascii = [
     {
         nameHTML: 'string to ascii',
         title: "convert each character to its ascii representation",

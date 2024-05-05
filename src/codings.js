@@ -40,7 +40,7 @@ function getEncodings() {
             nameHTML: 'htmlEncode',
             key: 'htmlenc',
             fnc: (str, out, ref) => {
-                var t = document.createElement('div');
+                const t = document.createElement('div');
                 t.innerText = str;
                 return t.innerHTML.replace(/./g, (c) => {
                     if(htmlEncodeTable[c.charCodeAt(0)]) {
@@ -116,8 +116,10 @@ function getEncodings() {
             nameHTML: 'json yaml',
             title: "convert between json and yaml",
             fnc: str => {
+                //jsyaml can do both
                 const obj = jsyaml.load(str);
                 try {
+                    //if json parse works converto to yaml
                     const json = JSON.parse(str);
                     return jsyaml.dump(obj);
                 } catch(e) {

@@ -1,7 +1,7 @@
 import { imageConversions } from '../image/image';
 
 /**@type {Array<Encoding>} */
-var imageTransforms = [
+const imageTransforms = [
     ...imageConversions,
     {
         nameHTML: 'toBase64SvgDataString',
