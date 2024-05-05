@@ -20,13 +20,34 @@ type Option = (SelectOption | {
 
 
 interface Encoding {
+    /**
+     * name of the encoding as shown- can interpret html !! please dont make any xss 👀
+     */
     nameHTML: string
-
+    /**
+     * title as shown on hover
+     */
     title?: string
-    fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, t?: import("./textOutput").TextOutput) => string
+    /**
+     * transformation function
+     */
+    fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, textOuptut?: import("./textOutput").TextOutput) => string
+    /**
+     * fucntion to call when it is selected (try to use options where possible instead ⬇️)
+     */
     onchoose?: (queryValue: any) => string | number,
+    /**
+     * check if this string is a uniquly qualifying string for the Encoding (if so it will be automatically selected on pasting)
+     */
     matcher?: (str: string, add: (x: number, y: number) => void) => boolean
+    /**
+    * key to use for sharing in url
+    */
     key?: string
+
+    /**
+     * options of the current Encoding (can be accessed via textOuptut.currentParameter.options )
+     */
 
     options?: {
         [name: string]: Option
