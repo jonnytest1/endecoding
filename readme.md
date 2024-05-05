@@ -18,5 +18,5 @@ just file an issue :) and ill see
 
 
 badly documented features: 
-- you can take a photo ,paste one into the text field,or drag and drop it into the text field and it will try image 2 text on it
+- you can take a photo ,paste one into the text field,or drag and drop it into the text field and it will try image 2 text and qr code analyze on it
 - if you have text that only makes sense with one transformation , upon pasting it, the correct tranformation should be automatically matched
