@@ -1,0 +1,160 @@
+#matcher {
+    right: 10px;
+    position: absolute;
+    top: 30px;
+    width: 400px;
+    z-index: 3;
+}
+
+#loadingImage {
+    margin-left: 40px;
+    transform: translateY(4px);
+    visibility: hidden;
+}
+
+#textInput {
+    width: 85%;
+}
+
+#container {
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    position: absolute;
+    height: calc(100% - 60px);
+    width: calc(100% - 20px);
+    top: 40px;
+}
+
+#printButtons {
+    height: 40px;
+}
+
+#encodingSelectors {
+    height: 80%;
+}
+
+#amount {
+    min-width: 120px;
+}
+
+#amount::-webkit-inner-spin-button {
+    width: 16px;
+}
+
+.default {
+    display: none;
+}
+
+td {
+    height: inherit;
+    height: 20px;
+}
+
+.textDisplay {
+    width: 100%;
+    background-color: lightgray;
+}
+
+[textdisplaytd] {
+    position: relative;
+}
+
+[textdisplaytd]::before {
+    content: "↓";
+    position: absolute;
+    top: -17px;
+    right: 5px;
+}
+
+[textdisplaytd]:nth-child(n+3)::after {
+    content: "↑";
+    position: absolute;
+    top: -17px;
+    left: -3px;
+    transform: rotate(45deg) scale(1.2);
+}
+
+.converter {
+    text-align: center
+}
+
+.converterList {
+    border: 2px solid black;
+    height: calc(100% - 20px);
+    overflow-y: auto;
+    display: block;
+}
+
+.printAll {
+    width: 100%;
+}
+
+.cam {
+    float: right;
+}
+
+.floatingcontrols {
+    display: flex;
+    float: right;
+}
+
+#options td {
+    height: 0px;
+}
+
+#options form {
+    margin: 0
+}
+
+@media only screen and (max-width: 700px) {
+
+    #container {
+        top: 0px;
+    }
+
+    #menuButton {
+        display: none;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+
+    textarea#textInput {
+        min-height: 40px;
+        width: unset;
+    }
+
+    #loadingImage {
+        display: none;
+    }
+
+    #container {
+        position: relative;
+        flex-grow: 1;
+    }
+
+    #matcher {
+        display: none;
+    }
+
+    .floatingcontrols #amount {
+        flex-grow: 1;
+    }
+}
+
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #3c3c3c;
+        filter: invert(1) hue-rotate(180deg);
+    }
+
+    * {
+        color: rgb(31, 196, 207);
+    }
+}

@@ -1,0 +1,91 @@
+<html>
+
+    <head>
+        <link rel="stylesheet"
+              href="index.css">
+        <link rel="stylesheet"
+              href="/sidebar/index.css">
+        <link rel="shortcut icon"
+              href="/assets/hashtag.png">
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1"
+              name="viewport" />
+        <script src="https://unpkg.com/node-forge@0.7.0/dist/forge.min.js"></script>
+        <script src='https://unpkg.com/tesseract.js@v2.1.1/dist/tesseract.min.js'></script>
+        <script src='https://unpkg.com/qr-scanner'
+                type="module"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
+                integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q=="
+                crossorigin="anonymous"
+                referrerpolicy="no-referrer"></script>
+
+        <script src="/sidebar/index.js"></script>
+    </head>
+
+    <body>
+        <div class="controls">
+            <img src="/assets/loading-icon.jpg"
+                 id="loadingImage"
+                 height="16">
+            <textarea type="text"
+                      dropzone="drop"
+                      id="textInput"
+                      placeholder="write text to transform or paste text or paste image into here"></textarea>
+
+
+            <div class="floatingcontrols">
+                <input type="number"
+                       title="column count (output of one column gets piped as input to the next)"
+                       id="amount"
+                       step="1"
+                       placeholder="amount of encodings"
+                       max="10"
+                       min="1">
+
+                <button id="cam"
+                        title="take image (just click on it) and search for text"
+                        class="cam">📷</button>
+            </div>
+
+
+            <input type="text"
+                   id="matcher"
+                   placeholder="searches all combinations example:\'(str)=>str.length==6\' enter">
+            <table id="container">
+                <tr id="encodingSelectors">
+                    <td class="default">
+                        <div class="converterList">
+                            <div class="converter default">Converter</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="options">
+                    <td class="default">
+
+                    </td>
+                </tr>
+                <tr id="textFields">
+                    <td class="default"
+                        textdisplaytd>
+                        <textarea class="textDisplay"
+                                  id=""
+                                  cols="30"
+                                  rows="10">
+                        </textarea>
+                    </td>
+                </tr>
+                <tr id="printButtons">
+                    <td class="default">
+                        <button class="printAll">
+                            printAll
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <script src="index.js"
+                type="module"></script>
+    </body>
+
+</html>
