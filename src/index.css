@@ -6,6 +6,11 @@
     z-index: 3;
 }
 
+.github-image {
+    align-items: center;
+    display: flex;
+}
+
 #loadingImage {
     margin-left: 40px;
     transform: translateY(4px);
