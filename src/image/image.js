@@ -9,6 +9,7 @@ export const imageConversions = [
     {
         nameHTML: 'image',
         key: 'image',
+        matcherPrio: 10,
         matcher: str => str.startsWith("/9j/"),
         fnc: (str, el, out) => {
             const currentOptions = out.currentParameter.options.operation || "preview"

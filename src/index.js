@@ -315,13 +315,18 @@ let loadingImage = document.querySelector('#loadingImage');
         e.preventDefault();
         if(e.clipboardData.types.includes('text/plain')) {
             textValue = e.clipboardData.getData('text/plain');
-            for(let i = 0; i < encodings.length; i++) {
-                const coding = encodings[i];
-                if(coding.matcher?.(textValue, (x, i) => {
-                    amountValue = Math.max(amountValue, x + 1)
-                    Parameter.setIndex(x, i, queryPicked)
+
+            const codingsCopy = encodings.map((e, i) => {
+                e.__index = i
+                return e;
+            })
+            codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0) })
+            for(let coding of codingsCopy) {
+                if(coding.matcher?.(textValue, (columnIndex, rowIndex) => {
+                    amountValue = Math.max(amountValue, columnIndex + 1)
+                    Parameter.setIndex(columnIndex, rowIndex, queryPicked)
                 })) {
-                    Parameter.setIndex(0, coding.key ?? i, queryPicked);
+                    Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked);
                     break;
                 }
             }

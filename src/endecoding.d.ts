@@ -41,6 +41,10 @@ interface Encoding {
      */
     matcher?: (str: string, add: (x: number, y: number) => void) => boolean
     /**
+     * higher number runs matcher first (more specific matchers should get higher number  (defaults to 0))
+     */
+    matcherPrio?: number
+    /**
     * key to use for sharing in url
     */
     key?: string
@@ -52,6 +56,8 @@ interface Encoding {
     options?: {
         [name: string]: Option
     }
+
+    __index?: number
 }
 
 
