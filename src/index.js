@@ -269,7 +269,7 @@ let loadingImage = document.querySelector('#loadingImage');
                             }),
                             new Promise(async res => {
                                 QrScanner.scanImage(canvas, { qrEngine: await qrEngine }).then(result => {
-                                    textValue = textInput.value = qrcode
+                                    textValue = textInput.value = result.data
                                     recreate(textInput.value, amountValue);
                                     updateUrl();
                                     res(result.data)
@@ -351,7 +351,7 @@ let loadingImage = document.querySelector('#loadingImage');
                         }),
                         new Promise(async res => {
                             QrScanner.scanImage(txtImage, { qrEngine: await qrEngine }).then(result => {
-                                textValue = textInput.value = qrcode
+                                textValue = textInput.value = result.data
                                 recreate(textInput.value, amountValue);
                                 updateUrl();
                                 res(result.data)
