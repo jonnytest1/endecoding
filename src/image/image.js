@@ -10,7 +10,7 @@ export const imageConversions = [
         nameHTML: 'image',
         key: 'image',
         matcherPrio: 10,
-        matcher: str => str.startsWith("/9j/") || str.startsWith("iVBORw"),
+        matcher: str => str.startsWith("/9j/") || str.startsWith("iVBORw") || str.startsWith("data:image/"),
         fnc: (str, el, out) => {
             const currentOptions = out.currentParameter.options.operation || "preview"
             currentImage?.remove()
