@@ -1,5 +1,7 @@
-/* tslint:disable */
-
+// @ts-nocheck
+/**
+ * @param {string} string
+ */
 export default (string) => {
 
     function RotateLeft(lValue, iShiftBits) {

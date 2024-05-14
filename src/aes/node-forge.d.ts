@@ -1,4 +1,4 @@
-import ""
+
 interface ForgeBuffer {
     data: string
 
@@ -52,14 +52,7 @@ declare const forgeObj: {
 }
 
 
-declare global {
-    declare var forge: typeof forgeObj;
-    forge: typeof forgeObj;
-    interface Window {
-        forge: typeof forgeObj
-    }
-}
-
 declare interface Window {
     forge: typeof forgeObj
 }
+declare var forge: typeof forgeObj;

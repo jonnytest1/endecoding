@@ -1,8 +1,8 @@
 
-class Engine { }
+declare class Engine { }
 
 
-var QrScanner: {
+declare var QrScanner: {
     scanImage(img: HTMLImageElement | HTMLCanvasElement, options?: { qrEngine: Engine }): Promise<{ data: string }>
 
     createQrEngine(): Promise<Engine>

@@ -6,6 +6,10 @@ import ascii from './transformations/ascii';
 import base64 from './transformations/base64';
 import { imageTransformList } from './transformations/image';
 import morse from './transformations/morse';
+
+/**
+ * @type {Record<number,string>}
+ */
 const htmlEncodeTable = {
     171: 'laquo',
     176: 'deg',
@@ -293,6 +297,9 @@ function getEncodings() {
                 let words = str.split(' ');
                 if(indx === 2) {
                     if(words.every(w => w.length % 8 === 0)) {
+                        /**
+                         * @type {Array<string>}
+                         */
                         let tWords = [];
                         words.forEach(word => {
                             for(let i = 0; i < word.length; i += 8) {
@@ -346,6 +353,9 @@ function getEncodings() {
             o.textContent = `${name}`;
             if(from === 2) {
                 if(words.every(w => w.length % 8 === 0)) {
+                    /**
+                     * @type {Array<string>}
+                     */
                     let tWords = [];
                     words.forEach(word => {
                         for(let i = 0; i < word.length; i += 8) {

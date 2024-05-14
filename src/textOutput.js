@@ -7,7 +7,7 @@ import { Parameter } from './parameter';
 /**
  * @typedef {HTMLElement &{
  *  converter?:Encoding
- *  onclick?:(any)=>any
+ *  onclick?:(e:Event)=>any
  *  converterRef?:string;
  *  val?:any
  * }} HTMLConvElement
@@ -21,18 +21,26 @@ export class TextOutput {
      *
      * @param {Encoding} converter
      * @param {Array<Parameter>} pickedParameters
+     * @param {number} index
      * @param {Context} context
+     * @param {boolean} initial
      */
     constructor(converter, index, pickedParameters, initial, context) {
         this.initialRun = initial;
         this.next = null;
         this.converter = converter;
         this.encodings = encodings;
+        /**
+         * @type {Array<HTMLConvElement>}
+         */
         this.conversionElements = [];
         this.index = index;
         this.pickedParameters = pickedParameters;
         this.context = context;
         this.optionsElement = null
+        /**
+         * @type {Parameter|undefined}
+         */
         this.currentParameter = this.pickedParameters[this.index]
     }
 
@@ -45,7 +53,9 @@ export class TextOutput {
         this.previousText = previousText;
         this.previous = previous;
     }
-
+    /**
+     * @param {string} str 
+     */
     convert(str) {
         if(str === 'ERROR') {
             return 'ERROR';
@@ -103,7 +113,7 @@ export class TextOutput {
                 valInput.name = optionKey
                 valInput.type = optObj.type
 
-                if(this.currentParameter.options[optionKey]) {
+                if(this.currentParameter.options?.[optionKey]) {
                     const currentValue = valInput.value = this.currentParameter.options[optionKey]
                     if(optObj.type == "checkbox") {
                         valInput.checked = valInput.value === "on"
@@ -174,7 +184,10 @@ export class TextOutput {
             })
         }
     }
-
+    /**
+     * 
+     * @param {()=>void} updateUrl 
+     */
     addElements(updateUrl) {
         const convRow = document.querySelector('#encodingSelectors');
         const newConvList = getDefault(convRow);

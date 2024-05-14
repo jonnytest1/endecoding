@@ -1,5 +1,7 @@
 /// <reference path="../endecoding.d.ts" />
-
+/**
+ * @type {Record<string,string>}
+ */
 const letters = {
     '/': ' ',
     '.-': 'a',

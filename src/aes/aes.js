@@ -1,6 +1,6 @@
 /// <reference path="../endecoding.d.ts" />
 /// <reference path="./node-forge.d.ts" />
-
+// @ts-check
 /**
  *
  * @param {string} secret
@@ -88,6 +88,11 @@ const aes = [
         fnc: function(str, out, ref) {
             let secret = out.val;
             addSelect(secret, this, out, ref);
+
+            /**
+             * 
+             * @param {string} base64 
+             */
             function base64ToArrayBuffer(base64) {
                 var binaryString = window.atob(base64);
                 var len = binaryString.length;
@@ -99,6 +104,10 @@ const aes = [
             }
 
             const byteBuffer = base64ToArrayBuffer(str);
+
+            /**
+             * @type {ForgeBuffer}
+             */
             let forgeIvBuffer
 
             let startOffset = 0

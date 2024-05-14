@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "allowJs": true,
+        "noEmit": true,
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext"
+        ],
+        "target": "ESNext"
+    },
+    "files": [
+        "./src/index.js",
+        "./src/aes/aes.js"
+    ],
+    "include": [
+        "src/*.js",
+        "src/**/*.js"
+    ]
+}

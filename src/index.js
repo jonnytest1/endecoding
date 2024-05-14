@@ -203,6 +203,9 @@ let loadingImage = document.querySelector('#loadingImage');
         recreate(textValue, amountValue);
         updateUrl();
     };
+    /**
+     * @type {number}
+     */
     let inputTimeout;
 
 

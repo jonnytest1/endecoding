@@ -21,7 +21,7 @@ interface RecognizeOptinos {
     logger?: (e: ProgressEvent) => void
 }
 
-var Tesseract: {
+declare var Tesseract: {
     recognize(data: string, language: Language, opts?: RecognizeOptinos): Result
     //TesseractWorker: new () => TesseractWorker
 }
