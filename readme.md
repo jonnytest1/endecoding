@@ -12,6 +12,7 @@ i have a very low threshhold for doing stuff twice
 2. apply transformation
 3. pipe into next transformation
 
+<img src="src/preview3.png" style="height:200px">
 
 missing transformations ?
 just file an issue :) and ill see
