@@ -1,11 +1,12 @@
 ///<reference path="index.js"/>
 ///<reference path="jsyaml.d.ts"/>
-import aes from './aes/aes';
+import aes from './node-forge/aes';
 import hashes from './hashes/hashes';
 import ascii from './transformations/ascii';
 import base64 from './transformations/base64';
 import { imageTransformList } from './transformations/image';
 import morse from './transformations/morse';
+import { rsa } from './node-forge/rsa';
 
 /**
  * @type {Record<number,string>}
@@ -29,6 +30,7 @@ function getEncodings() {
         ...ascii,
         ...base64,
         ...aes,
+        ...rsa,
         ...hashes,
         {
             nameHTML: 'urlencode',

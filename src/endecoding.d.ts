@@ -4,7 +4,8 @@ interface SelectOption {
     type: "select",
     options: Array<{
         text: string,
-        value: string
+        value: string,
+        disableOptions?: Set<string>
     }>
     defaultV?: string
 }
@@ -15,7 +16,8 @@ type Option = (SelectOption | {
     type: "checkbox" | "text",
     defaultV?: string
 }) & {
-    title?: string
+    title?: string,
+    displayText?: string
 }
 
 
@@ -31,7 +33,7 @@ interface Encoding {
     /**
      * transformation function
      */
-    fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, textOuptut?: import("./textOutput").TextOutput) => string
+    fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, textOuptut?: import("./textOutput").TextOutput) => string | Promise<string>
     /**
      * fucntion to call when it is selected (try to use options where possible instead ⬇️)
      */

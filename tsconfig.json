@@ -14,7 +14,7 @@
     },
     "files": [
         "./src/index.js",
-        "./src/aes/aes.js"
+        "src/node-forge/aes.js"
     ],
     "include": [
         "src/*.js",

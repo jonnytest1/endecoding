@@ -56,30 +56,30 @@ export class TextOutput {
     /**
      * @param {string} str 
      */
-    convert(str) {
+    async convert(str) {
         if(str === 'ERROR') {
             return 'ERROR';
         }
-        this.convertedText = this.converter.fnc.call(this.converter, str, this.conversionElement, this);
+        this.convertedText = await this.converter.fnc.call(this.converter, str, this.conversionElement, this);
         return this.convertedText;
 
     }
-    recalculate() {
-        const value = this.convertInputElement();
+    async recalculate() {
+        const value = await this.convertInputElement();
         if(this.next) {
             this.next.previousText = value;
-            this.next.recalculate(this.next);
+            await this.next.recalculate(this.next);
         }
     }
 
-    printAll() {
+    async printAll() {
         console.log(`------ starting print for ${this.previousText} ------`);
         for(let element of this.encodings) {
             try {
                 if(element.onchoose && !this.conversionElement.val) {
                     continue;
                 }
-                let converted = element.fnc(this.previousText, this.conversionElement, this);
+                let converted = await element.fnc(this.previousText, this.conversionElement, this);
                 console.log(converted);
             } catch(e) {
                 console.log('ERROR', e, this.previousText, this.converter);
@@ -97,12 +97,16 @@ export class TextOutput {
         if(this.converter.options) {
 
             const form = document.createElement("form")
+            /**
+             * @type {Set<string>}
+             */
+            let disableOptinos
 
             for(const optionKey in this.converter.options) {
                 const optObj = this.converter.options[optionKey]
                 const optionsrow = document.createElement("div");
-                optionsrow.innerText = `${optionKey}: `
-
+                optionsrow.innerText = `${optObj.displayText ?? optionKey}: `
+                optionsrow.id = `option_${optionKey}`
                 if(optObj.title) {
                     optionsrow.title = optObj.title
                 }
@@ -113,58 +117,62 @@ export class TextOutput {
                 valInput.name = optionKey
                 valInput.type = optObj.type
 
-                if(this.currentParameter.options?.[optionKey]) {
-                    const currentValue = valInput.value = this.currentParameter.options[optionKey]
-                    if(optObj.type == "checkbox") {
-                        valInput.checked = valInput.value === "on"
-                    } else if(optObj.type === "select") {
-                        valInput = document.createElement("select")
-                        valInput.name = optionKey
-                        for(const option of optObj.options) {
-                            const optEl = document.createElement("option")
-                            optEl.value = option.value
-                            optEl.text = option.text
-                            if(optObj.defaultV && option.value === currentValue) {
-                                optEl.selected = true
-                            }
-                            valInput.appendChild(optEl)
-                        }
+                let currentValue = this.currentParameter?.options?.[optionKey]
+                if(optObj.type == "checkbox") {
+                    if(optObj.defaultV == "true") {
+                        valInput.checked = true
                     } else {
-                        debugger;
-                        console.error("missing option type impl")
+                        valInput.checked = false
                     }
+                    if(currentValue) {
+                        valInput.value = currentValue
+                    }
+                    valInput.checked = valInput.value === "on"
+                } else if(optObj.type === "select") {
+                    valInput = document.createElement("select")
+                    valInput.name = optionKey
+                    if(!currentValue) {
+                        currentValue = optObj.options[0].value
+                    }
+                    const currentOption = optObj.options.find(o => currentValue && o.value === currentValue)
+                    if(currentOption) {
+                        disableOptinos = currentOption.disableOptions
+                    }
+                    for(const option of optObj.options) {
+                        const optEl = document.createElement("option")
+                        optEl.value = option.value
+                        optEl.text = option.text
+                        if(optObj.defaultV && option.value === optObj.defaultV) {
+                            optEl.selected = true
+                        }
+                        if(currentValue && option.value === currentValue) {
+                            optEl.selected = true
+                        }
+                        valInput.appendChild(optEl)
+                    }
+                } else if(optObj.type === "text") {
+                    valInput.value = currentValue ?? ""
+                    valInput.defaultValue = optObj.defaultV
                 } else {
-                    if(optObj.type == "checkbox") {
-                        if(optObj.defaultV == "true") {
-                            valInput.checked = true
-                        } else {
-                            valInput.checked = false
-                        }
-                    } else if(optObj.type === "select") {
-                        valInput = document.createElement("select")
-                        valInput.name = optionKey
-                        for(const option of optObj.options) {
-                            const optEl = document.createElement("option")
-                            optEl.value = option.value
-                            optEl.text = option.text
-                            if(optObj.defaultV && option.value === optObj.defaultV) {
-                                optEl.selected = true
-                            }
-                            valInput.appendChild(optEl)
-                        }
-                    } else {
-                        valInput.defaultValue = optObj.defaultV
-                    }
+                    valInput.defaultValue = optObj.defaultV
                 }
+
 
 
                 optionsrow.appendChild(valInput)
                 form.appendChild(optionsrow)
                 this.optionsElement.style.height = "unset"
             }
+
+            if(disableOptinos) {
+                for(const opt of disableOptinos) {
+                    form.querySelector(`#option_${opt}`)?.remove()
+                }
+            }
+
             this.optionsElement.appendChild(form)
 
-            form.addEventListener("change", e => {
+            form.addEventListener("change", async e => {
                 const form = this.optionsElement.querySelector("form");
                 /**
                  * @type {Record<string,string>}
@@ -179,8 +187,10 @@ export class TextOutput {
                     }))
                 }
                 Parameter.setIndex(this.index, this.converter.key, this.pickedParameters, options);
+                this.currentParameter = this.pickedParameters[this.index]
                 updateurl()
-                this.recalculate();
+                await this.recalculate();
+                this.setOptions(updateurl)
             })
         }
     }
@@ -188,7 +198,7 @@ export class TextOutput {
      * 
      * @param {()=>void} updateUrl 
      */
-    addElements(updateUrl) {
+    async addElements(updateUrl) {
         const convRow = document.querySelector('#encodingSelectors');
         const newConvList = getDefault(convRow);
         this.conversionElements = [];
@@ -203,7 +213,7 @@ export class TextOutput {
                 newConvElement.title = converter.title
             }
             newConvElement.converterRef = converter.key || `${j}`;
-            newConvElement.onclick = (e) => {
+            newConvElement.onclick = async (e) => {
                 /**@type {HTMLConvElement} */
                 let element = newConvElement;
                 this.conversionElements.forEach(el => el.style.backgroundColor = '');
@@ -222,7 +232,7 @@ export class TextOutput {
                     newConvElement.innerHTML = converter.nameHTML;
                 }
                 this.setOptions(updateUrl)
-                this.recalculate();
+                await this.recalculate();
                 updateUrl();
             };
 
@@ -269,13 +279,13 @@ export class TextOutput {
         this.optionsElement = getDefault(optionsRow);
 
         this.setOptions(updateUrl)
-        this.convertInputElement();
+        await this.convertInputElement();
 
 
         optionsRow.appendChild(this.optionsElement)
     }
 
-    convertInputElement() {
+    async convertInputElement() {
         try {
             this.textField.style.backgroundColor = 'initial';
             if(!this.previousText) {
@@ -283,7 +293,7 @@ export class TextOutput {
                 return null;
             }
 
-            const converted = this.convert(this.previousText);
+            const converted = await this.convert(this.previousText);
             try {
                 if(typeof converted === 'object') {
                     this.textField.value = JSON.stringify(converted, undefined, '  ');

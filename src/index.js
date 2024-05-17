@@ -19,7 +19,7 @@ let context = {}
  * @param {string} text
  * @param {number} amount
  */
-function recreate(text, amount, initial = false) {
+async function recreate(text, amount, initial = false) {
 
     if(!amount) {
         return;
@@ -60,7 +60,7 @@ function recreate(text, amount, initial = false) {
             previousText = text;
         }
         output.setPrevious(previousText, outputs[outputs.length - 1]);
-        output.addElements(updateUrl);
+        await output.addElements(updateUrl);
 
         outputs.push(output);
 
@@ -93,7 +93,7 @@ function updateUrl() {
             }
         }
     }
-    if(url.href.length < 2000) {
+    if(url.href.length < 4000) {
         window.history.pushState(undefined, '', url.href);
     }
 }
@@ -198,9 +198,9 @@ let loadingImage = document.querySelector('#loadingImage');
         textInput.value = textValue;
     }
 
-    amountInput.oninput = (e) => {
+    amountInput.oninput = async (e) => {
         amountValue = +amountInput.value;
-        recreate(textValue, amountValue);
+        await recreate(textValue, amountValue);
         updateUrl();
     };
     /**
@@ -215,10 +215,10 @@ let loadingImage = document.querySelector('#loadingImage');
         loadingImage.style.visibility = 'visible';
         const file = event.dataTransfer.files[0];
         file.arrayBuffer()
-            .then(buffer => {
+            .then(async buffer => {
                 const dataArray = [...new Uint8Array(buffer)];
                 textInput.value = textValue = dataArray.join(' ');
-                recreate(textValue, amountValue);
+                await recreate(textValue, amountValue);
                 updateUrl();
                 loadingImage.style.visibility = 'hidden';
             });
@@ -271,9 +271,9 @@ let loadingImage = document.querySelector('#loadingImage');
                                 }
                             }),
                             new Promise(async res => {
-                                QrScanner.scanImage(canvas, { qrEngine: await qrEngine }).then(result => {
+                                QrScanner.scanImage(canvas, { qrEngine: await qrEngine }).then(async result => {
                                     textValue = textInput.value = result.data
-                                    recreate(textInput.value, amountValue);
+                                    await recreate(textInput.value, amountValue);
                                     updateUrl();
                                     res(result.data)
                                 }).catch(e => {
@@ -290,7 +290,7 @@ let loadingImage = document.querySelector('#loadingImage');
                                 .map(w => w.text)
                                 .join(" ")
                             try {
-                                recreate(textInput.value, amountValue);
+                                await recreate(textInput.value, amountValue);
                             } catch(e) {
                                 //
                             }
@@ -314,7 +314,7 @@ let loadingImage = document.querySelector('#loadingImage');
 
 
 
-    textInput.onpaste = (e) => {
+    textInput.onpaste = async (e) => {
         e.preventDefault();
         if(e.clipboardData.types.includes('text/plain')) {
             textValue = e.clipboardData.getData('text/plain');
@@ -335,7 +335,7 @@ let loadingImage = document.querySelector('#loadingImage');
             }
             textInput.value = textValue;
             try {
-                recreate(textValue, amountValue);
+                await recreate(textValue, amountValue);
             } catch(e) {
 
             }
@@ -358,9 +358,9 @@ let loadingImage = document.querySelector('#loadingImage');
                             }
                         }),
                         new Promise(async res => {
-                            QrScanner.scanImage(txtImage, { qrEngine: await qrEngine }).then(result => {
+                            QrScanner.scanImage(txtImage, { qrEngine: await qrEngine }).then(async result => {
                                 textValue = textInput.value = result.data
-                                recreate(textInput.value, amountValue);
+                                await recreate(textInput.value, amountValue);
                                 updateUrl();
                                 res(result.data)
                             }).catch(e => {
@@ -376,7 +376,7 @@ let loadingImage = document.querySelector('#loadingImage');
                             .map(w => w.text)
                             .join(" ")
                         try {
-                            recreate(textInput.value, amountValue);
+                            await recreate(textInput.value, amountValue);
                         } catch(e) {
                             //
                         }
@@ -408,24 +408,24 @@ let loadingImage = document.querySelector('#loadingImage');
         }
 
     };
-    textInput.oninput = (e) => {
+    textInput.oninput = async (e) => {
         if(queryPicked.some(q => q.yIndex.includes('aes'))) {
             if(inputTimeout) {
                 clearTimeout(inputTimeout);
             }
             inputTimeout = setTimeout(() => {
                 loadingImage.style.visibility = 'visible';
-                setTimeout(() => {
+                setTimeout(async () => {
                     inputTimeout = undefined;
                     textValue = textInput.value;
-                    recreate(textValue, amountValue);
+                    await recreate(textValue, amountValue);
                     updateUrl();
                     loadingImage.style.visibility = 'hidden';
                 }, 10);
             }, 500);
         } else {
             textValue = textInput.value;
-            recreate(textValue, amountValue);
+            await recreate(textValue, amountValue);
             updateUrl();
         }
         txtImage?.remove();

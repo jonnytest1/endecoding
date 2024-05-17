@@ -30,9 +30,9 @@ function addSelect(secret, encoding, out, ref) {
         e.stopPropagation();
     };
 
-    selectElement.onchange = () => {
+    selectElement.onchange = async () => {
         out.val = selectElement.value;
-        ref.recalculate();
+        await ref.recalculate();
     };
 }
 /**@type {Array<Encoding>} */
@@ -94,10 +94,10 @@ const aes = [
              * @param {string} base64 
              */
             function base64ToArrayBuffer(base64) {
-                var binaryString = window.atob(base64);
-                var len = binaryString.length;
-                var bytes = new Uint8Array(len);
-                for(var i = 0; i < len; i++) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for(let i = 0; i < len; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
                 }
                 return bytes.buffer;
@@ -145,9 +145,9 @@ const aes = [
             const forgeCipherBuffer = forge.util.createBuffer(cipherBuffer);
 
 
-            var key = forge.pkcs5.pbkdf2(secret, forgeSaltBuffer.data, 65536, 32, 'sha256');
+            const key = forge.pkcs5.pbkdf2(secret, forgeSaltBuffer.data, 65536, 32, 'sha256');
 
-            var decipher = forge.cipher.createDecipher('AES-GCM', key);
+            const decipher = forge.cipher.createDecipher('AES-GCM', key);
 
             decipher.start({
                 iv: forgeIvBuffer.data,
@@ -155,7 +155,7 @@ const aes = [
                 tag: forgeTagBuffer.data // authentication tag from encryption
             });
             decipher.update(forgeCipherBuffer);
-            var pass = decipher.finish();
+            const pass = decipher.finish();
             if(pass) {
                 return decipher.output.getBytes();
             }
