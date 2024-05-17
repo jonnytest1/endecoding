@@ -10,6 +10,10 @@ export const rsa = [
                     value: "generate_public_key",
                     disableOptions: new Set(["private_key"])
                 }, {
+                    text: "generate new private key",
+                    value: "generate_new_private_key",
+                    disableOptions: new Set(["private_key", "public_key"])
+                }, {
                     text: "encrypt",
                     value: "encrypt",
                 }, {
@@ -69,9 +73,17 @@ export const rsa = [
                     }
                 });
                 return decrypted
+            } else if(operation === "generate_new_private_key") {
+                const keyPair = forge.rsa.generateKeyPair({
+                    bits: 2048
+                })
+                return forge.pki.privateKeyToPem(keyPair.privateKey)
             }
 
             return str
+        },
+        matcher(str) {
+            return str.startsWith("-----BEGIN RSA PRIVATE KEY-----")
         }
     }
 

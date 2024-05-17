@@ -77,9 +77,17 @@ type MessageDigestRoot = {
 }
 
 declare const forgeObj: {
+    rsa: {
+        generateKeyPair(opts: { bits?: number }): {
+            publicKey: PublicKey
+
+            privateKey: PrivateKey
+        }
+    }
     md: MessageDigestRoot
     pki: {
         publicKeyToPem(pub: PublicKey): string
+        privateKeyToPem(pub: PrivateKey): string
         privateKeyFromPem: (key: string) => PrivateKey
         publicKeyFromPem: (key: string) => PublicKey
         setRsaPublicKey(n: N, e: E): PublicKey
