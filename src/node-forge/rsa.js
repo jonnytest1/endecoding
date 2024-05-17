@@ -16,7 +16,7 @@ export const rsa = [
                 options: [{
                     text: "generate_public_key",
                     value: "generate_public_key",
-                    disableOptions: new Set(["private_key", "data"])
+                    disableOptions: new Set(["public_key", "data"])
                 }, {
                     text: "generate new private key",
                     value: "generate_new_private_key",
