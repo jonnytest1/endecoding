@@ -78,7 +78,8 @@ export const rsa = [
                 for(let i = ref.index; i >= 0; i--) {
                     if(keyCache[i]) {
                         priv = keyCache[i]
-                        const inputEl = ref.optionsElement.querySelector("#option_private_key")?.querySelector("input");
+
+                        const inputEl = ref.optionsElement?.querySelector("#option_private_key")?.querySelector("input");
                         if(inputEl) {
                             inputEl.value = `<inherited from #${i}>`
                         }
@@ -89,6 +90,9 @@ export const rsa = [
             }
             const operation = ref.currentParameter.options.operation
             if(operation === "generate_public_key") {
+                if(!pub) {
+                    pub = forge.pki.setRsaPublicKey(priv.n, priv.e)
+                }
                 return forge.pki.publicKeyToPem(pub)
             } else if(operation === "encrypt") {
                 try {
