@@ -41,7 +41,7 @@ export class TextOutput {
         /**
          * @type {Parameter|undefined}
          */
-        this.currentParameter = this.pickedParameters[this.index]
+        this.currentParameter = this.pickedParameters[this.index] || new Parameter(this.index)
     }
 
     /**
@@ -133,6 +133,7 @@ export class TextOutput {
                     valInput.name = optionKey
                     if(!currentValue) {
                         currentValue = optObj.options[0].value
+                        this.currentParameter.options[optionKey] = currentValue
                     }
                     const currentOption = optObj.options.find(o => currentValue && o.value === currentValue)
                     if(currentOption) {
