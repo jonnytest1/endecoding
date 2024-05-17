@@ -154,6 +154,20 @@ export class TextOutput {
                 } else if(optObj.type === "text") {
                     valInput.value = currentValue ?? ""
                     valInput.defaultValue = optObj.defaultV
+                    /**
+                     * @type {number}
+                     */
+                    let timeout
+                    valInput.addEventListener("input", e => {
+                        if(timeout) {
+                            clearTimeout(timeout)
+                        }
+                        timeout = setTimeout(() => {
+                            form.dispatchEvent(new Event("change"))
+                        }, 500)
+
+                    })
+
                 } else {
                     valInput.defaultValue = optObj.defaultV
                 }

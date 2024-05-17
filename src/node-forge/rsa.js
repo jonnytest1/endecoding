@@ -1,3 +1,11 @@
+
+
+/**
+ * @type {Array<PrivateKey>}
+ */
+const keyCache = []
+
+
 /**@type {Array<Encoding>} */
 export const rsa = [
     {
@@ -8,11 +16,11 @@ export const rsa = [
                 options: [{
                     text: "generate_public_key",
                     value: "generate_public_key",
-                    disableOptions: new Set(["private_key"])
+                    disableOptions: new Set(["private_key", "data"])
                 }, {
                     text: "generate new private key",
                     value: "generate_new_private_key",
-                    disableOptions: new Set(["private_key", "public_key"])
+                    disableOptions: new Set(["private_key", "public_key", "data"])
                 }, {
                     text: "encrypt",
                     value: "encrypt",
@@ -31,6 +39,11 @@ export const rsa = [
                 type: "text",
                 displayText: "public key?",
                 title: "will overwrite the public key derived from private if specified"
+            },
+            data: {
+                type: "text",
+                displayText: "data?",
+                title: "will use this text in case key is used for input"
             }
         },
         fnc: (str, out, ref) => {
@@ -42,6 +55,13 @@ export const rsa = [
              * @type {PublicKey}
              */
             let pub
+
+            let contentData = str;
+
+            if(ref.currentParameter.options.data) {
+                contentData = ref.currentParameter.options.data
+            }
+
             if(ref.currentParameter.options.private_key) {
                 priv = forge.pki.privateKeyFromPem(ref.currentParameter.options.private_key)
                 pub = forge.pki.setRsaPublicKey(priv.n, priv.e)
@@ -52,12 +72,27 @@ export const rsa = [
             if(ref.currentParameter.options.public_key) {
                 pub = forge.pki.publicKeyFromPem(ref.currentParameter.options.public_key)
             }
+            if(priv) {
+                keyCache[ref.index] = priv
+            } else {
+                for(let i = ref.index; i >= 0; i--) {
+                    if(keyCache[i]) {
+                        priv = keyCache[i]
+                        const inputEl = ref.optionsElement.querySelector("#option_private_key")?.querySelector("input");
+                        if(inputEl) {
+                            inputEl.value = `<inherited from #${i}>`
+                        }
+
+                        break;
+                    }
+                }
+            }
             const operation = ref.currentParameter.options.operation
             if(operation === "generate_public_key") {
                 return forge.pki.publicKeyToPem(pub)
             } else if(operation === "encrypt") {
                 try {
-                    const encryptedBytes = pub.encrypt(str, "RSA-OAEP", {
+                    const encryptedBytes = pub.encrypt(contentData, "RSA-OAEP", {
                         md: forge.md.sha256.create(),
                         mgf1: {
                             md: forge.md.sha1.create()
@@ -72,7 +107,7 @@ export const rsa = [
                 }
             } else if(operation === "decrypt") {
 
-                const utf8Str = atob(str)
+                const utf8Str = atob(contentData)
                 const decrypted = priv.decrypt(utf8Str, 'RSA-OAEP', {
                     md: forge.md.sha256.create(),
                     mgf1: {
