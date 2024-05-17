@@ -56,13 +56,20 @@ export const rsa = [
             if(operation === "generate_public_key") {
                 return forge.pki.publicKeyToPem(pub)
             } else if(operation === "encrypt") {
-                const encryptedBytes = pub.encrypt(str, "RSA-OAEP", {
-                    md: forge.md.sha256.create(),
-                    mgf1: {
-                        md: forge.md.sha1.create()
+                try {
+                    const encryptedBytes = pub.encrypt(str, "RSA-OAEP", {
+                        md: forge.md.sha256.create(),
+                        mgf1: {
+                            md: forge.md.sha1.create()
+                        }
+                    })
+                    return btoa(encryptedBytes)
+                } catch(e) {
+                    if(e.message === "RSAES-OAEP input message length is too long.") {
+                        e.message = `${e.message}\n\n ==> usually the idea for long messages is to use aes for the message and encrypt only the secret with rsa`
                     }
-                })
-                return btoa(encryptedBytes)
+                    throw e;
+                }
             } else if(operation === "decrypt") {
 
                 const utf8Str = atob(str)
