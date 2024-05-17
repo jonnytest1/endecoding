@@ -41,7 +41,7 @@ interface Encoding {
     /**
      * check if this string is a uniquly qualifying string for the Encoding (if so it will be automatically selected on pasting)
      */
-    matcher?: (str: string, add: (x: number, y: number) => void) => boolean
+    matcher?: (str: string, add: (x: number, y: number) => void) => boolean | Record<string, string>
     /**
      * higher number runs matcher first (more specific matchers should get higher number  (defaults to 0))
      */

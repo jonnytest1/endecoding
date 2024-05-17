@@ -68,6 +68,8 @@ export const rsa = [
             } else if(str.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
                 priv = forge.pki.privateKeyFromPem(str)
                 pub = forge.pki.setRsaPublicKey(priv.n, priv.e)
+            } else if(str.startsWith("-----BEGIN PUBLIC KEY----")) {
+                pub = forge.pki.publicKeyFromPem(str)
             }
             if(ref.currentParameter.options.public_key) {
                 pub = forge.pki.publicKeyFromPem(ref.currentParameter.options.public_key)
@@ -128,7 +130,13 @@ export const rsa = [
 
             return str
         },
-        matcher(str) {
+        matcher(str, add) {
+            if(str.startsWith("-----BEGIN PUBLIC KEY----")) {
+                return {
+                    operation: "encrypt"
+                }
+            }
+
             return str.startsWith("-----BEGIN RSA PRIVATE KEY-----")
         }
     }

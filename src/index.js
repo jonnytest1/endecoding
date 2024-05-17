@@ -325,11 +325,20 @@ let loadingImage = document.querySelector('#loadingImage');
             })
             codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0) })
             for(let coding of codingsCopy) {
-                if(coding.matcher?.(textValue, (columnIndex, rowIndex) => {
-                    amountValue = Math.max(amountValue, columnIndex + 1)
-                    Parameter.setIndex(columnIndex, rowIndex, queryPicked)
-                })) {
-                    Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked);
+                const matched = coding.matcher?.(textValue, (columnIndex, rowIndex) => {
+                    amountValue = Math.max(amountValue, columnIndex + 1);
+                    Parameter.setIndex(columnIndex, rowIndex, queryPicked);
+                });
+
+                if(matched) {
+                    /**
+                     * @type {Record<string,string>|undefined}
+                     */
+                    let params = undefined
+                    if(typeof matched === "object") {
+                        params = matched
+                    }
+                    Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked, params);
                     break;
                 }
             }
