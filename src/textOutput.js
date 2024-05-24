@@ -97,6 +97,7 @@ export class TextOutput {
         if(this.converter.options) {
 
             const form = document.createElement("form")
+            this.optionsElement.appendChild(form)
             /**
              * @type {Set<string>}
              */
@@ -105,6 +106,7 @@ export class TextOutput {
             for(const optionKey in this.converter.options) {
                 const optObj = this.converter.options[optionKey]
                 const optionsrow = document.createElement("div");
+                form.appendChild(optionsrow)
                 optionsrow.innerText = `${optObj.displayText ?? optionKey}: `
                 optionsrow.id = `option_${optionKey}`
                 if(optObj.title) {
@@ -116,7 +118,6 @@ export class TextOutput {
                 let valInput = document.createElement("input")
                 valInput.name = optionKey
                 valInput.type = optObj.type
-
                 let currentValue = this.currentParameter?.options?.[optionKey]
                 if(optObj.type == "checkbox") {
                     if(optObj.defaultV == "true") {
@@ -139,6 +140,7 @@ export class TextOutput {
                     if(currentOption) {
                         disableOptinos = currentOption.disableOptions
                     }
+
                     for(const option of optObj.options) {
                         const optEl = document.createElement("option")
                         optEl.value = option.value
@@ -151,6 +153,7 @@ export class TextOutput {
                         }
                         valInput.appendChild(optEl)
                     }
+                    valInput.value = currentValue
                 } else if(optObj.type === "text") {
                     valInput.value = currentValue ?? ""
                     valInput.defaultValue = optObj.defaultV
@@ -171,12 +174,8 @@ export class TextOutput {
                 } else {
                     valInput.defaultValue = optObj.defaultV
                 }
-
-
-
-                optionsrow.appendChild(valInput)
-                form.appendChild(optionsrow)
                 this.optionsElement.style.height = "unset"
+                optionsrow.appendChild(valInput)
             }
 
             if(disableOptinos) {
@@ -185,7 +184,6 @@ export class TextOutput {
                 }
             }
 
-            this.optionsElement.appendChild(form)
 
             form.addEventListener("change", async e => {
                 const form = this.optionsElement.querySelector("form");
