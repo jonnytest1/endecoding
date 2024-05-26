@@ -180,6 +180,74 @@ let loadingImage = document.querySelector('#loadingImage');
 
 };*/
 
+const qrEngine = QrScanner.createQrEngine()
+
+
+let workerLog = false
+const tesseractWorker = Tesseract.createWorker("eng", 1, {
+    logger: function(e) {
+        if(workerLog) {
+            if(e.progress) {
+                textInput.placeholder = ` -- analyzing image -- ${Math.round(e.progress * 100)}/100`
+            } else {
+                textInput.placeholder = `${e.status}`
+            }
+        }
+        debugger
+    }
+})
+/**
+ * 
+ * @param {HTMLImageElement|HTMLCanvasElement} file 
+ */
+async function analyzeFile(file) {
+    /**
+     * @type {string}
+     */
+    let analyzable
+    if(file instanceof HTMLCanvasElement) {
+        analyzable = await new Promise(res => {
+            file.toBlob(blob => {
+                res(URL.createObjectURL(blob))
+            })
+        })
+    } else if(file instanceof HTMLImageElement) {
+        if(!file.complete) {
+            throw new Error("image not loaded")
+        }
+        analyzable = file.src
+    }
+
+    workerLog = true
+    /**
+     * @type {[Result,string]}
+     */
+    const [result, qrcode] = await Promise.all([
+        new Promise(async (res, err) => {
+            const worker = await tesseractWorker
+            debugger
+            worker.recognize(analyzable).then(result => {
+                res(result)
+            }).catch(e => {
+                debugger
+            })
+        }),
+        new Promise(async res => {
+            QrScanner.scanImage(file, { qrEngine: await qrEngine }).then(async result => {
+
+                res(result.data)
+            }).catch(e => {
+                res(null)
+            })
+        })
+    ])
+    workerLog = false
+    return {
+        image2Text: result,
+        qrCode: qrcode
+    }
+}
+
 (function setInitVariables() {
     let amountValue = currentUrl.searchParams.has('amount') ? +currentUrl.searchParams.get('amount') : 1;
     let textValue = currentUrl.searchParams.has('text') ? currentUrl.searchParams.get('text') : undefined;
@@ -209,7 +277,7 @@ let loadingImage = document.querySelector('#loadingImage');
     let inputTimeout;
 
 
-    const qrEngine = QrScanner.createQrEngine()
+
     textInput.addEventListener('drop', event => {
         event.preventDefault();
         loadingImage.style.visibility = 'visible';
@@ -257,52 +325,23 @@ let loadingImage = document.querySelector('#loadingImage');
 
                 preview.remove();
 
+                const results = await analyzeFile(canvas)
 
-                const data = canvas.toBlob(async blob => {
-                    try {
-
-                        let done = false
-                        const [result, qrcode] = await Promise.all([
-                            Tesseract.recognize(URL.createObjectURL(blob), "eng", {
-                                logger: (m) => {
-                                    if(!done) {
-                                        textInput.placeholder = ` -- analyzing image -- ${Math.round(m.progress * 100)}/100`
-                                    }
-                                }
-                            }),
-                            new Promise(async res => {
-                                QrScanner.scanImage(canvas, { qrEngine: await qrEngine }).then(async result => {
-                                    textValue = textInput.value = result.data
-                                    await recreate(textInput.value, amountValue);
-                                    updateUrl();
-                                    res(result.data)
-                                }).catch(e => {
-                                    res(null)
-                                })
-                            })
-                        ])
-                        done = true
-                        if(qrcode != null) {
-
-                        } else {
-                            textValue = textInput.value = result.data.words
-                                .filter(w => w.confidence > 70)
-                                .map(w => w.text)
-                                .join(" ")
-                            try {
-                                await recreate(textInput.value, amountValue);
-                            } catch(e) {
-                                //
-                            }
-                            updateUrl();
-                        }
-
-                    } catch(e) {
-                        debugger;
-                    }
-                });
-
-
+                if(results.qrCode) {
+                    textValue = results.qrCode
+                } else if(results.image2Text) {
+                    textValue = results.image2Text.data.words
+                        .filter(w => w.confidence > 70)
+                        .map(w => w.text)
+                        .join(" ")
+                }
+                textInput.value = textValue
+                try {
+                    await recreate(textInput.value, amountValue);
+                } catch(e) {
+                    console.error(e)
+                }
+                updateUrl();
             })
 
         })
@@ -354,44 +393,29 @@ let loadingImage = document.querySelector('#loadingImage');
             const imageFile = [...e.clipboardData.items].find(item => item.kind === "file").getAsFile()
             textInput.value = ""
             textInput.placeholder = " -- analyzing image --"
+            txtImage?.remove()
             txtImage = document.createElement("img")
 
             txtImage.src = URL.createObjectURL(imageFile)
 
             txtImage.onload = async () => {
                 try {
-                    const [result, qrcode] = await Promise.all([
-                        Tesseract.recognize(txtImage.src, "eng", {
-                            logger: (m) => {
-                                textInput.placeholder = ` -- analyzing image -- ${Math.round(m.progress * 100)}/100`
-                            }
-                        }),
-                        new Promise(async res => {
-                            QrScanner.scanImage(txtImage, { qrEngine: await qrEngine }).then(async result => {
-                                textValue = textInput.value = result.data
-                                await recreate(textInput.value, amountValue);
-                                updateUrl();
-                                res(result.data)
-                            }).catch(e => {
-                                res(null)
-                            })
-                        })
-                    ])
-                    if(qrcode != null) {
-
-                    } else {
-                        textValue = textInput.value = result.data.words
+                    const results = await analyzeFile(txtImage)
+                    if(results.qrCode) {
+                        textValue = results.qrCode
+                    } else if(results.image2Text) {
+                        textValue = results.image2Text.data.words
                             .filter(w => w.confidence > 70)
                             .map(w => w.text)
                             .join(" ")
-                        try {
-                            await recreate(textInput.value, amountValue);
-                        } catch(e) {
-                            //
-                        }
-                        updateUrl();
                     }
-
+                    textInput.value = textValue
+                    try {
+                        await recreate(textInput.value, amountValue);
+                    } catch(e) {
+                        console.error(e)
+                    }
+                    updateUrl();
                 } catch(e) {
                     debugger;
                 }
@@ -403,17 +427,6 @@ let loadingImage = document.querySelector('#loadingImage');
             document.body.appendChild(txtImage)
 
             context.image = txtImage
-            /*then(async data => {
-                const canvas = document.createElement("canvas")
-                const context = canvas.getContext("2d")
-
-
-
-
-                //context.drawImage(image, 0, 0)
-
-               
-            })*/
         }
 
     };
