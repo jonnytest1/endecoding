@@ -11,7 +11,7 @@ import { TextOutput } from './textOutput';
 /**
  * @type {Context}
  */
-let context = {}
+let context = {};
 
 
 /**
@@ -110,9 +110,9 @@ for(let i = 0; i < 50; i++) {
 
         [...currentUrl.searchParams.keys()].forEach(optionKey => {
             if(optionKey.startsWith(`${i}_`)) {
-                queryPicked[i].options[optionKey.replace(`${i}_`, "")] = currentUrl.searchParams.get(optionKey)
+                queryPicked[i].options[optionKey.replace(`${i}_`, "")] = currentUrl.searchParams.get(optionKey);
             }
-        })
+        });
 
     }
 }
@@ -180,22 +180,21 @@ let loadingImage = document.querySelector('#loadingImage');
 
 };*/
 
-const qrEngine = QrScanner.createQrEngine()
+const qrEngine = QrScanner.createQrEngine();
 
 
-let workerLog = false
+let workerLog = false;
 const tesseractWorker = Tesseract.createWorker("eng", 1, {
     logger: function(e) {
         if(workerLog) {
             if(e.progress) {
-                textInput.placeholder = ` -- analyzing image -- ${Math.round(e.progress * 100)}/100`
+                textInput.placeholder = ` -- analyzing image -- ${Math.round(e.progress * 100)}/100`;
             } else {
-                textInput.placeholder = `${e.status}`
+                textInput.placeholder = `${e.status}`;
             }
         }
-        debugger
     }
-})
+});
 /**
  * 
  * @param {HTMLImageElement|HTMLCanvasElement} file 
@@ -204,48 +203,48 @@ async function analyzeFile(file) {
     /**
      * @type {string}
      */
-    let analyzable
+    let analyzable;
     if(file instanceof HTMLCanvasElement) {
         analyzable = await new Promise(res => {
             file.toBlob(blob => {
-                res(URL.createObjectURL(blob))
-            })
-        })
+                res(URL.createObjectURL(blob));
+            });
+        });
     } else if(file instanceof HTMLImageElement) {
         if(!file.complete) {
-            throw new Error("image not loaded")
+            throw new Error("image not loaded");
         }
-        analyzable = file.src
+        analyzable = file.src;
     }
 
-    workerLog = true
+    workerLog = true;
     /**
      * @type {[Result,string]}
      */
     const [result, qrcode] = await Promise.all([
         new Promise(async (res, err) => {
-            const worker = await tesseractWorker
-            debugger
+            const worker = await tesseractWorker;
             worker.recognize(analyzable).then(result => {
-                res(result)
+                res(result);
             }).catch(e => {
-                debugger
-            })
+                debugger;
+
+            });
         }),
         new Promise(async res => {
             QrScanner.scanImage(file, { qrEngine: await qrEngine }).then(async result => {
 
-                res(result.data)
+                res(result.data);
             }).catch(e => {
-                res(null)
-            })
+                res(null);
+            });
         })
-    ])
-    workerLog = false
+    ]);
+    workerLog = false;
     return {
         image2Text: result,
         qrCode: qrcode
-    }
+    };
 }
 
 (function setInitVariables() {
@@ -261,7 +260,7 @@ async function analyzeFile(file) {
     amountInput.value = '' + amountValue || '1';
 
     if(textInput.value) {
-        textValue = textInput.value
+        textValue = textInput.value;
     } else if(textValue) {
         textInput.value = textValue;
     }
@@ -294,11 +293,11 @@ async function analyzeFile(file) {
 
 
     async function recordText() {
-        const preview = document.createElement("video")
-        preview.style.position = "fixed"
-        preview.style.left = preview.style.right = preview.style.top = preview.style.bottom = "10px"
+        const preview = document.createElement("video");
+        preview.style.position = "fixed";
+        preview.style.left = preview.style.right = preview.style.top = preview.style.bottom = "10px";
 
-        document.body.appendChild(preview)
+        document.body.appendChild(preview);
 
 
         navigator.mediaDevices.getUserMedia({
@@ -314,7 +313,7 @@ async function analyzeFile(file) {
                 const canvas = document.createElement("canvas");
                 const context = canvas.getContext("2d");
 
-                const rect = preview.getBoundingClientRect()
+                const rect = preview.getBoundingClientRect();
 
                 canvas.width = rect.width;
                 canvas.height = rect.height;
@@ -325,31 +324,31 @@ async function analyzeFile(file) {
 
                 preview.remove();
 
-                const results = await analyzeFile(canvas)
+                const results = await analyzeFile(canvas);
 
                 if(results.qrCode) {
-                    textValue = results.qrCode
+                    textValue = results.qrCode;
                 } else if(results.image2Text) {
                     textValue = results.image2Text.data.words
                         .filter(w => w.confidence > 70)
                         .map(w => w.text)
-                        .join(" ")
+                        .join(" ");
                 }
-                textInput.value = textValue
+                textInput.value = textValue;
                 try {
                     await recreate(textInput.value, amountValue);
                 } catch(e) {
-                    console.error(e)
+                    console.error(e);
                 }
                 updateUrl();
-            })
+            });
 
-        })
+        });
     }
 
 
     document.querySelector("#cam")
-        .addEventListener("click", recordText)
+        .addEventListener("click", recordText);
 
 
 
@@ -359,10 +358,10 @@ async function analyzeFile(file) {
             textValue = e.clipboardData.getData('text/plain');
 
             const codingsCopy = encodings.map((e, i) => {
-                e.__index = i
+                e.__index = i;
                 return e;
-            })
-            codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0) })
+            });
+            codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0); });
             for(let coding of codingsCopy) {
                 const matched = coding.matcher?.(textValue, (columnIndex, rowIndex) => {
                     amountValue = Math.max(amountValue, columnIndex + 1);
@@ -373,9 +372,9 @@ async function analyzeFile(file) {
                     /**
                      * @type {Record<string,string>|undefined}
                      */
-                    let params = undefined
+                    let params = undefined;
                     if(typeof matched === "object") {
-                        params = matched
+                        params = matched;
                     }
                     Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked, params);
                     break;
@@ -390,43 +389,43 @@ async function analyzeFile(file) {
             updateUrl();
         } else if(e.clipboardData.types.includes("Files")) {
 
-            const imageFile = [...e.clipboardData.items].find(item => item.kind === "file").getAsFile()
-            textInput.value = ""
-            textInput.placeholder = " -- analyzing image --"
-            txtImage?.remove()
-            txtImage = document.createElement("img")
+            const imageFile = [...e.clipboardData.items].find(item => item.kind === "file").getAsFile();
+            textInput.value = "";
+            textInput.placeholder = " -- analyzing image --";
+            txtImage?.remove();
+            txtImage = document.createElement("img");
 
-            txtImage.src = URL.createObjectURL(imageFile)
+            txtImage.src = URL.createObjectURL(imageFile);
 
             txtImage.onload = async () => {
                 try {
-                    const results = await analyzeFile(txtImage)
+                    const results = await analyzeFile(txtImage);
                     if(results.qrCode) {
-                        textValue = results.qrCode
+                        textValue = results.qrCode;
                     } else if(results.image2Text) {
                         textValue = results.image2Text.data.words
                             .filter(w => w.confidence > 70)
                             .map(w => w.text)
-                            .join(" ")
+                            .join(" ");
                     }
-                    textInput.value = textValue
+                    textInput.value = textValue;
                     try {
                         await recreate(textInput.value, amountValue);
                     } catch(e) {
-                        console.error(e)
+                        console.error(e);
                     }
                     updateUrl();
                 } catch(e) {
                     debugger;
                 }
-                textInput.placeholder = ""
-            }
-            txtImage.style.opacity = "0.2"
-            txtImage.style.position = "absolute"
-            txtImage.style.right = "0px"
-            document.body.appendChild(txtImage)
+                textInput.placeholder = "";
+            };
+            txtImage.style.opacity = "0.2";
+            txtImage.style.position = "absolute";
+            txtImage.style.right = "0px";
+            document.body.appendChild(txtImage);
 
-            context.image = txtImage
+            context.image = txtImage;
         }
 
     };

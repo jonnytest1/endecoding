@@ -37,11 +37,11 @@ export class TextOutput {
         this.index = index;
         this.pickedParameters = pickedParameters;
         this.context = context;
-        this.optionsElement = null
+        this.optionsElement = null;
         /**
          * @type {Parameter|undefined}
          */
-        this.currentParameter = this.pickedParameters[this.index] || new Parameter(this.index)
+        this.currentParameter = this.pickedParameters[this.index] || new Parameter(this.index);
     }
 
     /**
@@ -92,95 +92,95 @@ export class TextOutput {
      * @param {Function} updateurl 
      */
     setOptions(updateurl) {
-        [...this.optionsElement.children].forEach(c => c.remove())
+        [...this.optionsElement.children].forEach(c => c.remove());
 
         if(this.converter.options) {
 
-            const form = document.createElement("form")
-            this.optionsElement.appendChild(form)
+            const form = document.createElement("form");
+            this.optionsElement.appendChild(form);
             /**
              * @type {Set<string>}
              */
-            let disableOptinos
+            let disableOptinos;
 
             for(const optionKey in this.converter.options) {
-                const optObj = this.converter.options[optionKey]
+                const optObj = this.converter.options[optionKey];
                 const optionsrow = document.createElement("div");
-                form.appendChild(optionsrow)
-                optionsrow.innerText = `${optObj.displayText ?? optionKey}: `
-                optionsrow.id = `option_${optionKey}`
+                form.appendChild(optionsrow);
+                optionsrow.innerText = `${optObj.displayText ?? optionKey}: `;
+                optionsrow.id = `option_${optionKey}`;
                 if(optObj.title) {
-                    optionsrow.title = optObj.title
+                    optionsrow.title = optObj.title;
                 }
                 /**
                  * @type {HTMLInputElement|HTMLSelectElement}
                  */
-                let valInput = document.createElement("input")
-                valInput.name = optionKey
-                valInput.type = optObj.type
-                let currentValue = this.currentParameter?.options?.[optionKey]
+                let valInput = document.createElement("input");
+                valInput.name = optionKey;
+                valInput.type = optObj.type;
+                let currentValue = this.currentParameter?.options?.[optionKey];
                 if(optObj.type == "checkbox") {
                     if(optObj.defaultV == "true") {
-                        valInput.checked = true
+                        valInput.checked = true;
                     } else {
-                        valInput.checked = false
+                        valInput.checked = false;
                     }
                     if(currentValue) {
-                        valInput.value = currentValue
+                        valInput.value = currentValue;
                     }
-                    valInput.checked = valInput.value === "on"
+                    valInput.checked = valInput.value === "on";
                 } else if(optObj.type === "select") {
-                    valInput = document.createElement("select")
-                    valInput.name = optionKey
+                    valInput = document.createElement("select");
+                    valInput.name = optionKey;
                     if(!currentValue) {
-                        currentValue = optObj.options[0].value
-                        this.currentParameter.options[optionKey] = currentValue
+                        currentValue = optObj.options[0].value;
+                        this.currentParameter.options[optionKey] = currentValue;
                     }
-                    const currentOption = optObj.options.find(o => currentValue && o.value === currentValue)
+                    const currentOption = optObj.options.find(o => currentValue && o.value === currentValue);
                     if(currentOption) {
-                        disableOptinos = currentOption.disableOptions
+                        disableOptinos = currentOption.disableOptions;
                     }
 
                     for(const option of optObj.options) {
-                        const optEl = document.createElement("option")
-                        optEl.value = option.value
-                        optEl.text = option.text
+                        const optEl = document.createElement("option");
+                        optEl.value = option.value;
+                        optEl.text = option.text;
                         if(optObj.defaultV && option.value === optObj.defaultV) {
-                            optEl.selected = true
+                            optEl.selected = true;
                         }
                         if(currentValue && option.value === currentValue) {
-                            optEl.selected = true
+                            optEl.selected = true;
                         }
-                        valInput.appendChild(optEl)
+                        valInput.appendChild(optEl);
                     }
-                    valInput.value = currentValue
+                    valInput.value = currentValue;
                 } else if(optObj.type === "text") {
-                    valInput.value = currentValue ?? ""
-                    valInput.defaultValue = optObj.defaultV
+                    valInput.value = currentValue ?? "";
+                    valInput.defaultValue = optObj.defaultV;
                     /**
                      * @type {number}
                      */
-                    let timeout
+                    let timeout;
                     valInput.addEventListener("input", e => {
                         if(timeout) {
-                            clearTimeout(timeout)
+                            clearTimeout(timeout);
                         }
                         timeout = setTimeout(() => {
-                            form.dispatchEvent(new Event("change"))
-                        }, 500)
+                            form.dispatchEvent(new Event("change"));
+                        }, 500);
 
-                    })
+                    });
 
                 } else {
-                    valInput.defaultValue = optObj.defaultV
+                    valInput.defaultValue = optObj.defaultV;
                 }
-                this.optionsElement.style.height = "unset"
-                optionsrow.appendChild(valInput)
+                this.optionsElement.style.height = "unset";
+                optionsrow.appendChild(valInput);
             }
 
             if(disableOptinos) {
                 for(const opt of disableOptinos) {
-                    form.querySelector(`#option_${opt}`)?.remove()
+                    form.querySelector(`#option_${opt}`)?.remove();
                 }
             }
 
@@ -190,21 +190,21 @@ export class TextOutput {
                 /**
                  * @type {Record<string,string>}
                  */
-                let options = {}
+                let options = {};
                 if(form) {
                     options = Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => {
                         if(value instanceof File) {
-                            throw "nto supported file"
+                            throw "nto supported file";
                         }
-                        return [key, value]
-                    }))
+                        return [key, value];
+                    }));
                 }
                 Parameter.setIndex(this.index, this.converter.key, this.pickedParameters, options);
-                this.currentParameter = this.pickedParameters[this.index]
-                updateurl()
+                this.currentParameter = this.pickedParameters[this.index];
+                updateurl();
                 await this.recalculate();
-                this.setOptions(updateurl)
-            })
+                this.setOptions(updateurl);
+            });
         }
     }
     /**
@@ -223,7 +223,7 @@ export class TextOutput {
             newConvElement.innerHTML = converter.nameHTML;
             newConvElement.converter = converter;
             if(converter.title) {
-                newConvElement.title = converter.title
+                newConvElement.title = converter.title;
             }
             newConvElement.converterRef = converter.key || `${j}`;
             newConvElement.onclick = async (e) => {
@@ -244,7 +244,7 @@ export class TextOutput {
                 } else {
                     newConvElement.innerHTML = converter.nameHTML;
                 }
-                this.setOptions(updateUrl)
+                this.setOptions(updateUrl);
                 await this.recalculate();
                 updateUrl();
             };
@@ -276,7 +276,7 @@ export class TextOutput {
                 this.next.previousText = this.textField.value;
                 this.next.recalculate(this.next);
             }
-        })
+        });
         textRow.appendChild(newRow);
 
         const printRow = document.querySelector('#printButtons');
@@ -291,11 +291,11 @@ export class TextOutput {
         const optionsRow = document.querySelector('#options');
         this.optionsElement = getDefault(optionsRow);
 
-        this.setOptions(updateUrl)
+        this.setOptions(updateUrl);
         await this.convertInputElement();
 
 
-        optionsRow.appendChild(this.optionsElement)
+        optionsRow.appendChild(this.optionsElement);
     }
 
     async convertInputElement() {
