@@ -20,7 +20,7 @@ export class Parameter {
         /**
          * @type {Record<string,string>}
          */
-        this.options = {}
+        this.options = {};
     }
 
     valueOf() {
@@ -55,7 +55,7 @@ export class Parameter {
         }
         if(value) {
             if(typeof value == "object") {
-                queryPicked[xIndex].options = value
+                queryPicked[xIndex].options = value;
             } else {
                 queryPicked[xIndex].value = value;
             }

@@ -70,7 +70,7 @@ const ascii = [
             return str.split('')
                 .map(c => {
                     if(c === c.toUpperCase()) {
-                        return c.toLowerCase()
+                        return c.toLowerCase();
                     }
                     return c.toUpperCase();
                 })

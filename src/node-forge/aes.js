@@ -46,10 +46,10 @@ const aes = [
             let secret = out.val;
             addSelect(secret, this, out, ref);
 
-            var iv = forge.random.getBytesSync(12);
+            const iv = forge.random.getBytesSync(12);
 
-            var salt = forge.random.getBytesSync(16);
-            var key = forge.pkcs5.pbkdf2(secret, salt, 65536, 32, 'sha256');
+            const salt = forge.random.getBytesSync(16);
+            const key = forge.pkcs5.pbkdf2(secret, salt, 65536, 32, 'sha256');
             const cipher = forge.cipher.createCipher('AES-GCM', key);
             cipher.start({
                 iv: iv,
@@ -62,16 +62,16 @@ const aes = [
 
             const tag = cipher.mode.tag;
 
-            const encryptedBuffer = forge.util.createBuffer("")
+            const encryptedBuffer = forge.util.createBuffer("");
             if(ref.currentParameter.options.ivAtStart) {
-                encryptedBuffer.putBytes(iv)
+                encryptedBuffer.putBytes(iv);
             }
-            encryptedBuffer.putBytes(salt)
-            encryptedBuffer.putBytes(encrypted.data)
+            encryptedBuffer.putBytes(salt);
+            encryptedBuffer.putBytes(encrypted.data);
             encryptedBuffer.putBytes(tag.data);
 
             if(!ref.currentParameter.options.ivAtStart) {
-                encryptedBuffer.putBytes(iv)
+                encryptedBuffer.putBytes(iv);
             }
             const encodedB64 = forge.util.encode64(encryptedBuffer.data);
 
@@ -108,37 +108,37 @@ const aes = [
             /**
              * @type {ForgeBuffer}
              */
-            let forgeIvBuffer
+            let forgeIvBuffer;
 
-            let startOffset = 0
-            let endOFfset = byteBuffer.byteLength
+            let startOffset = 0;
+            let endOFfset = byteBuffer.byteLength;
 
-            const ivLength = 12
-            const saltLength = 16
-            const tagLength = 16
+            const ivLength = 12;
+            const saltLength = 16;
+            const tagLength = 16;
 
             if(ref.currentParameter.options.ivAtStart) {
                 const ivBuffer = byteBuffer.slice(startOffset, startOffset + ivLength);
                 forgeIvBuffer = forge.util.createBuffer(ivBuffer);
-                startOffset += ivLength
+                startOffset += ivLength;
             }
 
             const saltBuffer = byteBuffer.slice(startOffset, startOffset + saltLength);
             const forgeSaltBuffer = forge.util.createBuffer(saltBuffer);
-            startOffset += saltLength
+            startOffset += saltLength;
 
 
             //end offsets inverted
             if(!ref.currentParameter.options.ivAtStart) {
                 const ivBuffer = byteBuffer.slice(endOFfset - ivLength, endOFfset);
                 forgeIvBuffer = forge.util.createBuffer(ivBuffer);
-                endOFfset -= ivLength
+                endOFfset -= ivLength;
             }
 
 
             const tagBuffer = byteBuffer.slice(endOFfset - tagLength, endOFfset);
             const forgeTagBuffer = forge.util.createBuffer(tagBuffer);
-            endOFfset -= tagLength
+            endOFfset -= tagLength;
 
 
             const cipherBuffer = byteBuffer.slice(startOffset, endOFfset);
@@ -159,7 +159,7 @@ const aes = [
             if(pass) {
                 return decipher.output.getBytes();
             }
-            throw 'couldnt decrypt';
+            throw new Error('couldnt decrypt');
         },
         options: {
             ivAtStart: { type: "checkbox", defaultV: "true" }

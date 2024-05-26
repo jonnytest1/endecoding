@@ -73,8 +73,8 @@ function getEncodings() {
             matcher: str => !!str.match(/&.{1,4};/),
             fnc: (str) => {
                 const utf8decodedStr = str.replace(/\\u([0-9A-Fa-f]{4})/g, (e, a) => {
-                    return String.fromCharCode(parseInt(a, 16))
-                })
+                    return String.fromCharCode(parseInt(a, 16));
+                });
                 return new DOMParser().parseFromString(utf8decodedStr, 'text/html').body.textContent;
             }
         }, {
@@ -103,7 +103,7 @@ function getEncodings() {
             title: "parse query data from (partial)url as object",
             fnc: str => {
                 if(str.includes("?")) {
-                    str = str.split("?")[1]
+                    str = str.split("?")[1];
                 }
                 let urlParams = new URLSearchParams(str);
                 return JSON.stringify(Object.fromEntries(urlParams.entries()));
@@ -115,7 +115,7 @@ function getEncodings() {
                 .every(substr => substr.includes("=")),
             fnc: str => {
                 let obj = Object.fromEntries(str.split("; ")
-                    .map(subStr => subStr.split("=", 2)))
+                    .map(subStr => subStr.split("=", 2)));
                 return obj;
             }
         }, {
@@ -156,7 +156,7 @@ function getEncodings() {
                         .replace(/<line--break>/g, '\n')
                         .replace(/<line--tab>/g, '\t');
                 } catch(e) {
-                    return str.replace(/ at /g, '\nat ')
+                    return str.replace(/ at /g, '\nat ');
                 }
             }
         }, {
@@ -171,7 +171,7 @@ function getEncodings() {
                 } else {
                     const [first, second] = amount.split("-").map(s => s.trim());
 
-                    numAmt = (second.charCodeAt(0) - first.charCodeAt(0))
+                    numAmt = (second.charCodeAt(0) - first.charCodeAt(0));
                 }
                 return numAmt;
             },
@@ -181,19 +181,19 @@ function getEncodings() {
 
                 let shiftVal = out.val;
                 if(context.currentParameter.options.invert) {
-                    shiftVal *= -1
+                    shiftVal *= -1;
                 }
 
                 return str.split("")
                     .map(s => {
                         const char0indx = s.charCodeAt(0) - aOff;
-                        let newChar = (char0indx + shiftVal) % 26
+                        let newChar = (char0indx + shiftVal) % 26;
                         while(newChar < 0) {
-                            newChar += 26
+                            newChar += 26;
                         }
                         return String.fromCharCode(newChar + aOff);
                     })
-                    .join("")
+                    .join("");
             },
             options: {
                 invert: {
@@ -260,14 +260,14 @@ function getEncodings() {
     /**
      * @type {Array<string>}
      */
-    const radixOpts = []
+    const radixOpts = [];
 
     /**
      * @type {Array<Encoding>}
      */
     let convertArray = [];
     for(let indx = 2; indx < 37; indx++) {
-        radixOpts.push(`${indx}`)
+        radixOpts.push(`${indx}`);
         if(indx === 10) {
             continue;
         }
@@ -281,19 +281,19 @@ function getEncodings() {
             name = 'HEX';
             insertFnc = convertArray.unshift.bind(convertArray);
         } else if(indx !== 2) {
-            continue
+            continue;
         }
 
 
         insertFnc({
             nameHTML: name + ' to dec',
             matcher: indx === 2 ? ((str, additional) => {
-                const matches = !str.match(/[^01 ]/g)
+                const matches = !str.match(/[^01 ]/g);
                 if(matches) {
-                    additional(1, 1)
+                    additional(1, 1);
 
                 }
-                return matches
+                return matches;
             }) : undefined,
             fnc: (str, el) => {
                 let words = str.split(' ');
@@ -339,17 +339,17 @@ function getEncodings() {
         nameHTML: "radix",
         fnc: (str, o, t) => {
             let words = str.split(' ');
-            const from = +t.currentParameter.options.from || 2
-            const to = +t.currentParameter.options.to || 10
+            const from = +t.currentParameter.options.from || 2;
+            const to = +t.currentParameter.options.to || 10;
             let name = `radix: ${from}`;
             if(from === 16) {
                 name = 'HEX';
             }
 
             if(to === 16) {
-                name += " -> HEX"
+                name += " -> HEX";
             } else {
-                name += ` -> ${to}`
+                name += ` -> ${to}`;
             }
 
             o.textContent = `${name}`;
@@ -399,7 +399,7 @@ function getEncodings() {
                 defaultV: "10"
             }
         }
-    })
+    });
 
     return encs;
 }

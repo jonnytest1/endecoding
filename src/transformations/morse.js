@@ -61,7 +61,7 @@ const letters = {
 /**
  * @type {Array<Encoding>}
  */
-var morse = [{
+const morse = [{
     nameHTML: 'morse encoding',
     key: 'morseenc',
     fnc: str => {
