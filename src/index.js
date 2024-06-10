@@ -241,11 +241,33 @@ async function analyzeFile(file) {
         })
     ]);
     workerLog = false;
-    return {
-        image2Text: result,
-        qrCode: qrcode
-    };
+
+
+
+    if(qrcode) {
+        return qrcode;
+    } else if(result) {
+        let words = result.data.words
+            .filter(w => w.confidence > 70);
+        if(!words.length) {
+            words = result.data.words
+                .filter(w => w.confidence >= 50);
+        }
+        if(!words.length) {
+            words = result.data.words
+                .filter(w => w.confidence >= 20);
+        }
+        if(!words.length) {
+            words = result.data.words;
+        }
+
+        return words
+            .map(w => w.text)
+            .join(" ");
+    }
 }
+
+
 
 (function setInitVariables() {
     let amountValue = currentUrl.searchParams.has('amount') ? +currentUrl.searchParams.get('amount') : 1;
@@ -324,17 +346,9 @@ async function analyzeFile(file) {
 
                 preview.remove();
 
-                const results = await analyzeFile(canvas);
+                const result = await analyzeFile(canvas);
 
-                if(results.qrCode) {
-                    textValue = results.qrCode;
-                } else if(results.image2Text) {
-                    textValue = results.image2Text.data.words
-                        .filter(w => w.confidence > 70)
-                        .map(w => w.text)
-                        .join(" ");
-                }
-                textInput.value = textValue;
+                textInput.value = result;
                 try {
                     await recreate(textInput.value, amountValue);
                 } catch(e) {
@@ -399,16 +413,9 @@ async function analyzeFile(file) {
 
             txtImage.onload = async () => {
                 try {
-                    const results = await analyzeFile(txtImage);
-                    if(results.qrCode) {
-                        textValue = results.qrCode;
-                    } else if(results.image2Text) {
-                        textValue = results.image2Text.data.words
-                            .filter(w => w.confidence > 70)
-                            .map(w => w.text)
-                            .join(" ");
-                    }
-                    textInput.value = textValue;
+                    const result = await analyzeFile(txtImage);
+
+                    textInput.value = result;
                     try {
                         await recreate(textInput.value, amountValue);
                     } catch(e) {
