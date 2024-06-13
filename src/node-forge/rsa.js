@@ -62,7 +62,7 @@ export const rsa = [
                 contentData = ref.currentParameter.options.data;
             }
 
-            if(ref.currentParameter.options.private_key) {
+            if(ref.currentParameter.options.private_key && !ref.currentParameter.options.private_key.includes("<inherited from")) {
                 priv = forge.pki.privateKeyFromPem(ref.currentParameter.options.private_key);
                 pub = forge.pki.setRsaPublicKey(priv.n, priv.e);
             } else if(str.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
