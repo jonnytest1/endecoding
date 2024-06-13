@@ -301,7 +301,7 @@ export class TextOutput {
     async convertInputElement() {
         try {
             this.textField.style.backgroundColor = 'initial';
-            if(!this.previousText) {
+            if(this.previousText === undefined) {
                 this.textField.value = '';
                 return null;
             }
