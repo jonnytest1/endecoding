@@ -3,6 +3,7 @@
 /// <reference path="./parameter.js" />
 /// <reference path="./tesseract.d.ts" />
 /// <reference path="./qrscanner.d.ts" />
+/// <reference path="./polyfill.d.ts" />
 
 import { encodings } from './codings';
 import { Parameter } from './parameter';
@@ -297,20 +298,61 @@ async function analyzeFile(file) {
      */
     let inputTimeout;
 
+    /**
+     * @type {number}
+     */
+    let checkInterval = undefined;
 
-
-    textInput.addEventListener('drop', event => {
+    textInput.addEventListener('drop', async event => {
         event.preventDefault();
         loadingImage.style.visibility = 'visible';
-        const file = event.dataTransfer.files[0];
-        file.arrayBuffer()
-            .then(async buffer => {
-                const dataArray = [...new Uint8Array(buffer)];
-                textInput.value = textValue = dataArray.join(' ');
-                await recreate(textValue, amountValue);
-                updateUrl();
-                loadingImage.style.visibility = 'hidden';
+        const file = event.dataTransfer.items[0];
+        if(checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = undefined;
+        }
+
+        if(file.kind === "file" && "getAsFileSystemHandle" in file) {
+            const handle = await file.getAsFileSystemHandle();
+
+            const fileData = await handle.getFile();
+            const file_read = await fileData.arrayBuffer();
+            const dataArray = [...new Uint8Array(file_read)];
+
+            let textCache = dataArray.join(' ');
+            textInput.value = textValue = textCache;
+            await recreate(textValue, amountValue);
+            updateUrl();
+            loadingImage.style.visibility = 'hidden';
+
+
+            checkInterval = setInterval(async () => {
+
+                const fileData = await handle.getFile();
+                const file_read = await fileData.arrayBuffer();
+                const dataArray = [...new Uint8Array(file_read)];
+
+                let newText = dataArray.join(' ');
+                if(newText !== textCache) {
+                    textCache = newText;
+                    textInput.value = textValue = textCache;
+                    await recreate(textValue, amountValue);
+                    updateUrl();
+                    loadingImage.style.visibility = 'hidden';
+                }
             });
+        } else {
+            file.getAsFile().arrayBuffer()
+                .then(async buffer => {
+                    const dataArray = [...new Uint8Array(buffer)];
+                    textInput.value = textValue = dataArray.join(' ');
+                    await recreate(textValue, amountValue);
+                    updateUrl();
+                    loadingImage.style.visibility = 'hidden';
+                });
+        }
+
+
     });
 
 
