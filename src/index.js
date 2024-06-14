@@ -311,7 +311,9 @@ async function analyzeFile(file) {
             clearInterval(checkInterval);
             checkInterval = undefined;
         }
-
+        if(!queryPicked[0]?.yIndex) {
+            Parameter.setIndex(0, 1, queryPicked);
+        }
         if(file.kind === "file" && "getAsFileSystemHandle" in file) {
             const handle = await file.getAsFileSystemHandle();
 
@@ -321,6 +323,7 @@ async function analyzeFile(file) {
 
             let textCache = dataArray.join(' ');
             textInput.value = textValue = textCache;
+
             await recreate(textValue, amountValue);
             updateUrl();
             loadingImage.style.visibility = 'hidden';
