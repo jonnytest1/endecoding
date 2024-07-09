@@ -185,7 +185,7 @@ const qrEngine = QrScanner.createQrEngine();
 
 
 let workerLog = false;
-const tesseractWorker = Tesseract.createWorker("eng", 1, {
+const tesseractWorker = Tesseract.createWorker(['eng', 'chi_tra'], 1, {
     logger: function(e) {
         if(workerLog) {
             if(e.progress) {

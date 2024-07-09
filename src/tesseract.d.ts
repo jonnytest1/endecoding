@@ -2,7 +2,7 @@
 
 
 
-type Language = "eng"
+type Language = "eng" | "chi_tra"
 interface Result {
     data: {
         text: string
@@ -27,7 +27,7 @@ interface TesseractWorker {
 
 }
 declare var Tesseract: {
-    createWorker(language: Language, oemMode: number, opts?: RecognizeOptinos): Promise<TesseractWorker>
+    createWorker(language: Language | Array<Language>, oemMode: number, opts?: RecognizeOptinos): Promise<TesseractWorker>
     recognize(data: string, language: Language, opts?: RecognizeOptinos): Promise<Result>
     //TesseractWorker: new () => TesseractWorker
 }
