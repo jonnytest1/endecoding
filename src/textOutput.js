@@ -186,6 +186,7 @@ export class TextOutput {
 
 
             form.addEventListener("change", async e => {
+                this.initialRun = false;
                 const form = this.optionsElement.querySelector("form");
                 /**
                  * @type {Record<string,string>}
@@ -239,6 +240,7 @@ export class TextOutput {
                 if(element.converter.onchoose) {
                     const chooseParam = this.pickedParameters[this.index] ? this.pickedParameters[this.index].value : undefined;
                     const cutomValue = element.converter.onchoose(chooseParam);
+                    this.initialRun = false;
                     newConvElement.val = cutomValue;
                     Parameter.setIndex(this.index, element.converterRef, this.pickedParameters, cutomValue);
                 } else {
