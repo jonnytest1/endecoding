@@ -34,7 +34,9 @@ export const crt = [
                     subject: Object.fromEntries(crt.subject.attributes.map(attr => [attr.name, attr.shortName])),
                     sha256: {
                         certificate: certHash,
-                        publicKey: publicKeyHash
+                        publicKey: publicKeyHash,
+                        //maybe hash this(and other modulus) for easier compare 🤔
+                        publicKey_modulus: crt.publicKey.n.toString()
 
                     }
                 }, undefined, "  ");
@@ -53,8 +55,9 @@ export const crt = [
                     subject: Object.fromEntries(crtReq.subject.attributes.map(attr => [attr.name, attr.shortName])),
                     sha256: {
                         certificate: certRequestHash,
-                        publicKey: publicKeyHash
-
+                        publicKey: publicKeyHash,
+                        //maybe hash this(and other modulus) for easier compare 🤔
+                        publicKey_modulus: crtReq.publicKey.n.toString()
                     }
                 }, undefined, "  ");
             } else if(trimmedStr.startsWith("-----BEGIN PRIVATE KEY-----")) {
@@ -65,7 +68,9 @@ export const crt = [
                 const certRequestHash = hash.digest().toHex();
 
                 return JSON.stringify({
-                    sha256: certRequestHash
+                    sha256: certRequestHash,
+                    // maybe hash this(and other modulus) for easier compare 🤔
+                    modulus: privateKey.n.toString()
                 }, undefined, "  ");
             }
         },

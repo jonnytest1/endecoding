@@ -57,7 +57,7 @@ interface DecryptOptions {
     seed?: number
 
 }
-type N = { ___break?: "n" }
+type N = { ___break?: "n", toString(): string }
 type E = { ___break?: "e" }
 type encryptonSchemes = "RSA-OAEP"
 type PrivateKey = {
@@ -69,6 +69,8 @@ type PrivateKey = {
 interface PublicKey {
     encrypt(bytes: string, scheme: encryptonSchemes, schemeOptinos: DecryptOptions): string,
     verify(): boolean
+
+    n: N
 }
 
 
