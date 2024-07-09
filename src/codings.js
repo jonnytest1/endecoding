@@ -7,6 +7,7 @@ import base64 from './transformations/base64';
 import { imageTransformList } from './transformations/image';
 import morse from './transformations/morse';
 import { rsa } from './node-forge/rsa';
+import { crt } from './node-forge/cert';
 
 /**
  * @type {Record<number,string>}
@@ -32,6 +33,7 @@ function getEncodings() {
         ...aes,
         ...rsa,
         ...hashes,
+        ...crt,
         {
             nameHTML: 'urlencode',
             key: 'urlenc',

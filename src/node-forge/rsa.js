@@ -28,6 +28,10 @@ export const rsa = [
                     text: "decrypt",
                     value: "decrypt",
                     disableOptions: new Set(["public_key"])
+                }, {
+                    text: "hash",
+                    value: "hash",
+                    disableOptions: new Set(["private_key", "public_key", "data"])
                 }]
             },
             private_key: {
@@ -126,6 +130,33 @@ export const rsa = [
                     bits: 2048
                 });
                 return forge.pki.privateKeyToPem(keyPair.privateKey);
+            } else if(operation == "hash") {
+                let privHash;
+                let pubHash;
+
+                if(priv) {
+                    let hash = forge.md.sha256.create();
+                    hash.update(forge.pki.pemToDer(forge.pki.privateKeyToPem(priv)).getBytes());
+                    privHash = hash.digest().toHex();
+                }
+
+                if(pub) {
+                    let hash = forge.md.sha256.create();
+                    hash.update(forge.pki.pemToDer(forge.pki.publicKeyToPem(pub)).getBytes());
+                    pubHash = hash.digest().toHex();
+                }
+
+                if(privHash && pubHash) {
+                    return JSON.stringify({
+                        privateKey: privHash,
+                        publicKey: pubHash
+                    }, null, "  ");
+                } else if(privHash) {
+                    return privHash;
+                } else if(pubHash) {
+                    return pubHash;
+                }
+
             }
 
             return str;

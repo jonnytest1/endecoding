@@ -33,12 +33,17 @@ interface Decipher extends Cipher {
     }): void
 }
 type Encodings = "utf8"
+
+interface HashDigest {
+    toHex(): string
+}
+
 interface MessageDigest<version extends keyof MessageDigestRoot> {
 
     __typebreak: version
-    update(data: string, encoding: Encodings): void
+    update(data: string, encoding?: Encodings): void
 
-    digest(): string
+    digest(): HashDigest
 }
 
 interface DecryptOptions {
@@ -76,7 +81,43 @@ type MessageDigestRoot = {
     }
 }
 
+interface Cert {
+    publicKey: PublicKey
+    extensions: Array<{
+        name: string
+        altNames?: Array<{
+            ip: string
+        }>
+    }>
+
+    issuer: {
+        attributes: Array<{ name: string, shortName: string }>
+    },
+    subject: {
+        attributes: Array<{ name: string, shortName: string }>,
+    }
+    validity: {
+        notAfter: Date
+        notBefore: Date
+    }
+}
+interface CertReq {
+    publicKey: PublicKey
+
+    subject: {
+        attributes: Array<{ name: string, shortName: string }>,
+    }
+}
+
+interface ASN {
+
+}
+
+
 declare const forgeObj: {
+    asn1: {
+        toDer(asn: ASN): ForgeBuffer
+    }
     rsa: {
         generateKeyPair(opts: { bits?: number }): {
             publicKey: PublicKey
@@ -86,6 +127,10 @@ declare const forgeObj: {
     }
     md: MessageDigestRoot
     pki: {
+        publicKeyToAsn1(publicKey: PublicKey): ASN
+        pemToDer(pem: string): ForgeBuffer
+        certificateFromPem(pem: string): Cert
+        certificationRequestFromPem(pem: string): CertReq
         publicKeyToPem(pub: PublicKey): string
         privateKeyToPem(pub: PrivateKey): string
         privateKeyFromPem: (key: string) => PrivateKey
