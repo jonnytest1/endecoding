@@ -97,7 +97,11 @@ function getEncodings() {
                     1. having exactly 2 '.'<br>
                     2. the first and second parts starting with 'ey' indicating a base64 encoded '{'<br><br>
 
-                the payload data is always readable even without verifying the signature ❗
+                the payload data is always readable even without verifying the signature ❗<br>
+                <br>example implementation:<br><br>
+                <code class="language-javascript">
+                    atob(token.split('.')[1])
+                </code>
             `,
             fnc: str => {
                 const nStr = str.split('.')[1];

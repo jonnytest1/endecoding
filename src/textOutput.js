@@ -121,7 +121,6 @@ export class TextOutput {
                 valInput.type = optObj.type;
                 let currentValue = this.currentParameter?.options?.[optionKey];
                 if(optObj.type == "checkbox") {
-                    const inputEl = valInput;
                     if(optObj.defaultV == "true") {
                         valInput.checked = true;
                     } else {
@@ -246,7 +245,13 @@ export class TextOutput {
             const helpPopover = document.querySelector("#help-popover");
             helpElement.addEventListener("click", e => {
                 e.stopPropagation();
-                helpPopover.querySelector(".content").innerHTML = converter.helpHTML;
+                const popOverContent = helpPopover.querySelector(".content");
+                popOverContent.innerHTML = converter.helpHTML;
+
+                popOverContent.querySelectorAll("code").forEach(codeEl => {
+                    hljs.highlightElement(codeEl);
+                });
+
             });
 
             helpElement.popoverTargetElement = helpPopover;
