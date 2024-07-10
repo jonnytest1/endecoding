@@ -289,6 +289,7 @@ function getEncodings() {
 
         insertFnc({
             nameHTML: name + ' to dec',
+            key: `${name}_dec`,
             matcher: indx === 2 ? ((str, additional) => {
                 const matches = !str.match(/[^01 ]/g);
                 if(matches) {
@@ -323,6 +324,7 @@ function getEncodings() {
         });
         insertFnc({
             nameHTML: 'dec to ' + name,
+            key: `dec_${name}`,
             fnc: str => {
                 // @ts-ignore
                 return str.split(' ')
