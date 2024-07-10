@@ -12,9 +12,9 @@ export const imageConversions = [
         matcherPrio: 10,
         matcher: str => str.startsWith("/9j/") || str.startsWith("iVBORw") || str.startsWith("data:image/"),
         fnc: (str, el, out) => {
-            const currentOptions = out.currentParameter.options.operation || "preview";
+            const currentOperation = out.currentParameter.options.operation || "preview";
             currentImage?.remove();
-            if(currentOptions === "preview") {
+            if(currentOperation === "preview") {
                 if(str.startsWith("/9j/")) {
                     str = `data:image/jpeg;base64,${str}`;
                 } else if(str.startsWith("iVBORw")) {
@@ -25,6 +25,18 @@ export const imageConversions = [
                 currentImage = new Image();
                 currentImage.src = str;
                 document.body.appendChild(currentImage);
+            } else if(currentOperation == "dataurl") {
+                const canvas = document.createElement("canvas");
+
+                let image = out.context.image;
+
+                canvas.width = image.width;
+                canvas.height = image.height;
+
+                const context = canvas.getContext("2d");
+                context.drawImage(image, 0, 0);
+
+                return canvas.toDataURL();
             }
             return str;
         },
@@ -34,6 +46,9 @@ export const imageConversions = [
                 options: [{
                     text: "preview",
                     value: "preview"
+                }, {
+                    text: "dataurl",
+                    value: "dataurl"
                 }]
             }
         }
