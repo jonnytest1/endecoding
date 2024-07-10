@@ -228,8 +228,7 @@ async function analyzeFile(file) {
             worker.recognize(analyzable).then(result => {
                 res(result);
             }).catch(e => {
-                debugger;
-
+                console.error(e);
             });
         }),
         new Promise(async res => {
@@ -468,7 +467,7 @@ async function analyzeFile(file) {
                     }
                     updateUrl();
                 } catch(e) {
-                    debugger;
+                    console.error(e);
                 }
                 textInput.placeholder = "";
             };

@@ -10,9 +10,17 @@ interface SelectOption {
     defaultV?: string
 }
 
+interface RangeOptions {
+    type: "range"
+
+    max?: number,
+    min?: number
+    step?: number
+    defaultV?: string
+}
 
 
-type Option = (SelectOption | {
+type Option = (SelectOption | RangeOptions | {
     type: "checkbox" | "text",
     defaultV?: string
 }) & {

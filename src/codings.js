@@ -181,26 +181,15 @@ function getEncodings() {
             nameHTML: "letter shift",
             title: "shift letters in the alphabet",
             key: "shift",
-            onchoose: function(queryValue) {
-                const amount = prompt("shift how many");
-                let numAmt;
-                if(!isNaN(+amount)) {
-                    numAmt = +amount;
-                } else {
-                    const [first, second] = amount.split("-").map(s => s.trim());
-
-                    numAmt = (second.charCodeAt(0) - first.charCodeAt(0));
-                }
-                return numAmt;
-            },
             fnc: (str, out, context) => {
-                out.textContent = "shift (" + out.val + ")";
+
                 const aOff = 97;
 
-                let shiftVal = out.val;
+                let shiftVal = +context.currentParameter.options.amount;
                 if(context.currentParameter.options.invert) {
                     shiftVal *= -1;
                 }
+                out.textContent = "shift (" + shiftVal + ")";
 
                 return str.split("")
                     .map(s => {
@@ -214,6 +203,11 @@ function getEncodings() {
                     .join("");
             },
             options: {
+                amount: {
+                    type: "range",
+                    max: 26,
+                    min: -26
+                },
                 invert: {
                     type: "checkbox",
                     title: "shift in the other direction"

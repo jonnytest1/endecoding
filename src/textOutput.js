@@ -60,6 +60,7 @@ export class TextOutput {
         if(str === 'ERROR') {
             return 'ERROR';
         }
+
         this.convertedText = await this.converter.fnc.call(this.converter, str, this.conversionElement, this);
         return this.convertedText;
 
@@ -120,12 +121,13 @@ export class TextOutput {
                 valInput.type = optObj.type;
                 let currentValue = this.currentParameter?.options?.[optionKey];
                 if(optObj.type == "checkbox") {
+                    const inputEl = valInput;
                     if(optObj.defaultV == "true") {
                         valInput.checked = true;
                     } else {
                         valInput.checked = false;
                     }
-                    if(currentValue) {
+                    if(currentValue !== undefined) {
                         valInput.value = currentValue;
                     }
                     valInput.checked = valInput.value === "on";
@@ -171,6 +173,13 @@ export class TextOutput {
 
                     });
 
+                } else if(optObj.type === "range") {
+                    valInput.defaultValue = optObj.defaultV;
+                    valInput.step = `${optObj.step || ""}`;
+                    valInput.min = `${optObj.min || ""}`;
+                    valInput.max = `${optObj.max || ""}`;
+                    valInput.value = currentValue ?? "";
+
                 } else {
                     valInput.defaultValue = optObj.defaultV;
                 }
@@ -193,12 +202,21 @@ export class TextOutput {
                  */
                 let options = {};
                 if(form) {
-                    options = Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => {
+                    for(const formElement of form) {
+                        if(formElement instanceof HTMLInputElement) {
+                            if(formElement.type === "checkbox") {
+                                options[formElement.name] = formElement.checked ? "on" : "";
+                            } else {
+                                options[formElement.name] = formElement.value;
+                            }
+                        }
+                    }
+                    /*options = Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => {
                         if(value instanceof File) {
                             throw "nto supported file";
                         }
                         return [key, value];
-                    }));
+                    }));*/
                 }
                 Parameter.setIndex(this.index, this.converter.key, this.pickedParameters, options);
                 this.currentParameter = this.pickedParameters[this.index];
