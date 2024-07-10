@@ -4,7 +4,7 @@ import aes from './node-forge/aes';
 import hashes from './hashes/hashes';
 import ascii from './transformations/ascii';
 import base64 from './transformations/base64';
-import { imageTransformList } from './transformations/image';
+import { imageConversions } from './image/image';
 import morse from './transformations/morse';
 import { rsa } from './node-forge/rsa';
 import { crt } from './node-forge/cert';
@@ -272,7 +272,7 @@ function getEncodings() {
             }
         },
         ...morse,
-        ...imageTransformList
+        ...imageConversions
 
     ];
     /**
