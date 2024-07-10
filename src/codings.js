@@ -83,6 +83,22 @@ function getEncodings() {
             nameHTML: 'jwt',
             key: 'jwt',
             title: "parse jwt data",
+            helpHTML: `
+                a jwt token is 
+                <ul>
+                    <li>'header': a base64 encoded json describing the algorithm and token type</li>
+                    <li>'payload' a json object with data</li>
+                    <li>a signature combining both header and payload</li>
+                </ul>
+                    
+                for more information <a href="https://jwt.io" target="_blank">see jwt.io</a><br>
+
+                it can be identified by <br>
+                    1. having exactly 2 '.'<br>
+                    2. the first and second parts starting with 'ey' indicating a base64 encoded '{'<br><br>
+
+                the payload data is always readable even without verifying the signature ❗
+            `,
             fnc: str => {
                 const nStr = str.split('.')[1];
                 const base64Str = nStr.replace(/-/g, '+')

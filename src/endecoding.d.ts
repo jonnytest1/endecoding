@@ -31,6 +31,10 @@ interface Encoding {
      */
     title?: string
     /**
+     * html for an explanation of how the transformation works
+     */
+    helpHTML?: string
+    /**
      * transformation function
      */
     fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, textOuptut?: import("./textOutput").TextOutput) => string | Promise<string>

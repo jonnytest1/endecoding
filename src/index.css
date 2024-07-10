@@ -85,6 +85,26 @@ td {
     text-align: center
 }
 
+.converter .help {
+    float: right;
+    cursor: pointer;
+    font-size: 12px;
+    border: 0px;
+    background-color: unset;
+}
+
+#help-popover:popover-open {
+    padding: 24px;
+    border-radius: 12px;
+    min-width: 200px;
+    min-height: 100px;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+}
+
 .converterList {
     border: 2px solid black;
     height: calc(100% - 20px);
@@ -158,6 +178,10 @@ td {
     body {
         background: #3c3c3c;
         filter: invert(1) hue-rotate(180deg);
+    }
+
+    #help-popover {
+        background: #3c3c3c;
     }
 
     * {

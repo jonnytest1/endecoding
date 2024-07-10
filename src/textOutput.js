@@ -208,6 +208,33 @@ export class TextOutput {
             });
         }
     }
+
+
+    /**
+     * 
+     * @param {HTMLConvElement} element 
+     * @param {Encoding} converter 
+     */
+    setConverterRow(element, converter) {
+        element.innerHTML = converter.nameHTML;
+        element.converter = converter;
+
+        if(converter.helpHTML) {
+            const helpElement = document.createElement("button");
+            element.appendChild(helpElement);
+            helpElement.classList.add("help");
+            helpElement.textContent = `ℹ️`;
+            helpElement.title = "explanation";
+            const helpPopover = document.querySelector("#help-popover");
+            helpElement.addEventListener("click", e => {
+                e.stopPropagation();
+                helpPopover.querySelector(".content").innerHTML = converter.helpHTML;
+            });
+
+            helpElement.popoverTargetElement = helpPopover;
+        }
+    }
+
     /**
      * 
      * @param {()=>void} updateUrl 
@@ -221,8 +248,7 @@ export class TextOutput {
             const convList = newConvList.querySelector('.converterList');
             /**@type {HTMLConvElement} */
             const newConvElement = getDefault(convList);
-            newConvElement.innerHTML = converter.nameHTML;
-            newConvElement.converter = converter;
+            this.setConverterRow(newConvElement, converter);
             if(converter.title) {
                 newConvElement.title = converter.title;
             }
@@ -244,7 +270,7 @@ export class TextOutput {
                     newConvElement.val = cutomValue;
                     Parameter.setIndex(this.index, element.converterRef, this.pickedParameters, cutomValue);
                 } else {
-                    newConvElement.innerHTML = converter.nameHTML;
+                    this.setConverterRow(newConvElement, converter);
                 }
                 this.setOptions(updateUrl);
                 await this.recalculate();
@@ -265,6 +291,9 @@ export class TextOutput {
             }
             this.conversionElements.push(newConvElement);
             convList.appendChild(newConvElement);
+
+
+
         }
         convRow.appendChild(newConvList);
 
