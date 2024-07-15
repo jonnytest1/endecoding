@@ -18,10 +18,14 @@ interface RangeOptions {
     step?: number
     defaultV?: string
 }
+interface CheckboxOtions {
+    type: "checkbox"
+    defaultV?: "on"
+}
 
 
-type Option = (SelectOption | RangeOptions | {
-    type: "checkbox" | "text",
+type Option = (SelectOption | RangeOptions | CheckboxOtions | {
+    type: "text",
     defaultV?: string
 }) & {
     title?: string,

@@ -123,6 +123,9 @@ export class TextOutput {
                 if(optObj.type == "checkbox") {
                     if(optObj.defaultV == "true") {
                         valInput.checked = true;
+                        if(currentValue === undefined && this.currentParameter.options !== undefined) {
+                            this.currentParameter.options[optionKey] = optObj.defaultV;
+                        }
                     } else {
                         valInput.checked = false;
                     }
@@ -208,6 +211,8 @@ export class TextOutput {
                             } else {
                                 options[formElement.name] = formElement.value;
                             }
+                        } else if(formElement instanceof HTMLSelectElement) {
+                            options[formElement.name] = formElement.value;
                         }
                     }
                     /*options = Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => {

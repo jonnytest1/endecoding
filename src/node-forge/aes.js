@@ -35,6 +35,85 @@ function addSelect(secret, encoding, out, ref) {
         await ref.recalculate();
     };
 }
+
+/**
+* 
+* @param {string} base64 
+*/
+function base64ToArrayBuffer(base64) {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for(let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * @param {ArrayBufferLike} byteBuffer;
+ * @param {string} secret;
+ * @param {boolean} [ivAtStart];
+ */
+function decrypt(byteBuffer, secret, ivAtStart = false) {
+    /**
+               * @type {ForgeBuffer}
+               */
+    let forgeIvBuffer;
+
+    let startOffset = 0;
+    let endOFfset = byteBuffer.byteLength;
+
+    const ivLength = 12;
+    const saltLength = 16;
+    const tagLength = 16;
+
+    if(ivAtStart) {
+        const ivBuffer = byteBuffer.slice(startOffset, startOffset + ivLength);
+        forgeIvBuffer = forge.util.createBuffer(ivBuffer);
+        startOffset += ivLength;
+    }
+
+    const saltBuffer = byteBuffer.slice(startOffset, startOffset + saltLength);
+    const forgeSaltBuffer = forge.util.createBuffer(saltBuffer);
+    startOffset += saltLength;
+
+
+    //end offsets inverted
+    if(!ivAtStart) {
+        const ivBuffer = byteBuffer.slice(endOFfset - ivLength, endOFfset);
+        forgeIvBuffer = forge.util.createBuffer(ivBuffer);
+        endOFfset -= ivLength;
+    }
+
+
+    const tagBuffer = byteBuffer.slice(endOFfset - tagLength, endOFfset);
+    const forgeTagBuffer = forge.util.createBuffer(tagBuffer);
+    endOFfset -= tagLength;
+
+
+    const cipherBuffer = byteBuffer.slice(startOffset, endOFfset);
+    const forgeCipherBuffer = forge.util.createBuffer(cipherBuffer);
+
+
+    const key = forge.pkcs5.pbkdf2(secret, forgeSaltBuffer.data, 65536, 32, 'sha256');
+
+    const decipher = forge.cipher.createDecipher('AES-GCM', key);
+
+    decipher.start({
+        iv: forgeIvBuffer.data,
+        tagLength: 128, // optional, defaults to 128 bits
+        tag: forgeTagBuffer.data // authentication tag from encryption
+    });
+    decipher.update(forgeCipherBuffer);
+
+    return decipher;
+}
+/**
+ * @type {string}
+ */
+let matchedSecret;
+
 /**@type {Array<Encoding>} */
 const aes = [
     {
@@ -78,83 +157,61 @@ const aes = [
             return encodedB64;
         },
         options: {
-            ivAtStart: { type: "checkbox", defaultV: "true" }
+            ivAtStart: { type: "checkbox", defaultV: "on" }
         }
     }, {
         nameHTML: 'aes decrypt',
         key: 'aesdec',
         title: "aes decrypt (iv,salt,data,tag)",
+        matcherPrio: 10,
+        matcher: (str) => {
+            /**
+             * @type {Array<string>}
+             */
+            let previousSecrets = JSON.parse(localStorage.getItem('aes_secrets')) || [];
+
+            for(const secret of previousSecrets) {
+                const byteBuffer = base64ToArrayBuffer(str);
+
+                const decipherSIv = decrypt(byteBuffer, secret, true);
+                const passSIv = decipherSIv.finish();
+                if(passSIv) {
+                    matchedSecret = secret;
+                    setTimeout(() => {
+                        matchedSecret = undefined;
+                    }, 2000);
+                    return {
+                        ivAtStart: "on"
+                    };
+                }
+                const decipher = decrypt(byteBuffer, secret, false);
+                const pass = decipher.finish();
+                if(pass) {
+                    matchedSecret = secret;
+                    setTimeout(() => {
+                        matchedSecret = undefined;
+                    }, 2000);
+                    return {
+                        ivAtStart: ""
+                    };
+                }
+            }
+
+        },
+
         onchoose: queryValue => prompt('aes secret (kept in localStorage)', queryValue || ''),
         fnc: function(str, out, ref) {
+            if(matchedSecret) {
+                out.val = matchedSecret;
+                matchedSecret = undefined;
+            }
             let secret = out.val;
             addSelect(secret, this, out, ref);
 
-            /**
-             * 
-             * @param {string} base64 
-             */
-            function base64ToArrayBuffer(base64) {
-                const binaryString = window.atob(base64);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for(let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                return bytes.buffer;
-            }
-
             const byteBuffer = base64ToArrayBuffer(str);
 
-            /**
-             * @type {ForgeBuffer}
-             */
-            let forgeIvBuffer;
+            const decipher = decrypt(byteBuffer, secret, !!ref.currentParameter.options.ivAtStart);
 
-            let startOffset = 0;
-            let endOFfset = byteBuffer.byteLength;
-
-            const ivLength = 12;
-            const saltLength = 16;
-            const tagLength = 16;
-
-            if(ref.currentParameter.options.ivAtStart) {
-                const ivBuffer = byteBuffer.slice(startOffset, startOffset + ivLength);
-                forgeIvBuffer = forge.util.createBuffer(ivBuffer);
-                startOffset += ivLength;
-            }
-
-            const saltBuffer = byteBuffer.slice(startOffset, startOffset + saltLength);
-            const forgeSaltBuffer = forge.util.createBuffer(saltBuffer);
-            startOffset += saltLength;
-
-
-            //end offsets inverted
-            if(!ref.currentParameter.options.ivAtStart) {
-                const ivBuffer = byteBuffer.slice(endOFfset - ivLength, endOFfset);
-                forgeIvBuffer = forge.util.createBuffer(ivBuffer);
-                endOFfset -= ivLength;
-            }
-
-
-            const tagBuffer = byteBuffer.slice(endOFfset - tagLength, endOFfset);
-            const forgeTagBuffer = forge.util.createBuffer(tagBuffer);
-            endOFfset -= tagLength;
-
-
-            const cipherBuffer = byteBuffer.slice(startOffset, endOFfset);
-            const forgeCipherBuffer = forge.util.createBuffer(cipherBuffer);
-
-
-            const key = forge.pkcs5.pbkdf2(secret, forgeSaltBuffer.data, 65536, 32, 'sha256');
-
-            const decipher = forge.cipher.createDecipher('AES-GCM', key);
-
-            decipher.start({
-                iv: forgeIvBuffer.data,
-                tagLength: 128, // optional, defaults to 128 bits
-                tag: forgeTagBuffer.data // authentication tag from encryption
-            });
-            decipher.update(forgeCipherBuffer);
             const pass = decipher.finish();
             if(pass) {
                 return decipher.output.getBytes();
@@ -162,7 +219,7 @@ const aes = [
             throw new Error('couldnt decrypt');
         },
         options: {
-            ivAtStart: { type: "checkbox", defaultV: "true" }
+            ivAtStart: { type: "checkbox", defaultV: "on" }
         }
     }
 ];
