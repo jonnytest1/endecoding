@@ -421,21 +421,26 @@ async function analyzeFile(file) {
             });
             codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0); });
             for(let coding of codingsCopy) {
-                const matched = coding.matcher?.(textValue, (columnIndex, rowIndex) => {
-                    amountValue = Math.max(amountValue, columnIndex + 1);
-                    Parameter.setIndex(columnIndex, rowIndex, queryPicked);
-                });
+                try {
+                    const matched = coding.matcher?.(textValue, (columnIndex, rowIndex) => {
+                        amountValue = Math.max(amountValue, columnIndex + 1);
+                        Parameter.setIndex(columnIndex, rowIndex, queryPicked);
+                    });
 
-                if(matched) {
-                    /**
-                     * @type {Record<string,string>|undefined}
-                     */
-                    let params = undefined;
-                    if(typeof matched === "object") {
-                        params = matched;
+
+                    if(matched) {
+                        /**
+                         * @type {Record<string,string>|undefined}
+                         */
+                        let params = undefined;
+                        if(typeof matched === "object") {
+                            params = matched;
+                        }
+                        Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked, params);
+                        break;
                     }
-                    Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked, params);
-                    break;
+                } catch(e) {
+                    // if matcher throws treat as unmatched
                 }
             }
             textInput.value = textValue;
