@@ -54,17 +54,38 @@ const ascii = [
     {
         nameHTML: 'base 64 decode',
         key: '64dec',
-        matcher: str => {
+        matcher: (str) => {
             // if there is an = not at the end
             if(str.includes('=') && str.match(/=[a-zA-Z0-9]/)) {
                 return false;
             }
-            return str.split("\n").every(line => {
+            const lines = str.split(/\r?\n/);
+            const isBase64 = lines.every(line => {
                 if(line.trim().length === 0) {
                     return true;
                 }
                 return line.length % 4 === 0 && !line.match(/[^a-zA-Z0-9+\/=]/g);
             });
+
+            if(isBase64) {
+                let hasBitsCt = 0;
+                str.split(/\r?\n/).forEach(line => {
+                    const bits = manualDecodeHiddenBits(line);
+                    if(bits) {
+                        hasBitsCt++;
+                    }
+                });
+
+
+                if(hasBitsCt > (lines.length / 4)) {
+                    return {
+                        hiddenBits: "on"
+                    };
+                }
+
+            }
+
+            return isBase64;
         },
         fnc: (str, c, t) => {
             if(t.currentParameter.options.hiddenBits) {
@@ -73,7 +94,7 @@ const ascii = [
                  */
                 let hiddenBits = [];
 
-                str.split("\n").forEach(line => {
+                str.split(/\r?\n/).forEach(line => {
                     const bits = manualDecodeHiddenBits(line);
                     if(bits) {
                         hiddenBits.push(bits);
@@ -92,7 +113,7 @@ const ascii = [
                 return chars;
 
             }
-            return str.split("\n").map(line => {
+            return str.split(/\r?\n/).map(line => {
                 return atob(line);
             }).join("\n");
 

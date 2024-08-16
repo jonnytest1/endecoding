@@ -121,12 +121,13 @@ export class TextOutput {
                 valInput.type = optObj.type;
                 let currentValue = this.currentParameter?.options?.[optionKey];
                 if(optObj.type == "checkbox") {
-                    if(optObj.defaultV == "true") {
+                    if(optObj.defaultV == "on" || optObj.defaultV == "true") {
                         valInput.checked = true;
                         if(currentValue === undefined && this.currentParameter.options !== undefined) {
                             this.currentParameter.options[optionKey] = optObj.defaultV;
                         }
                     } else {
+                        valInput.value = "off";
                         valInput.checked = false;
                     }
                     if(currentValue !== undefined) {
