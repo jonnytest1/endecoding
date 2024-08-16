@@ -54,6 +54,15 @@ const ascii = [
     {
         nameHTML: 'base 64 decode',
         key: '64dec',
+        helpHTML: `
+        standard base 64 decoding 
+        <a href="https://en.wikipedia.org/wiki/Base64">https://en.wikipedia.org/wiki/Base64</a>
+        <br>
+        
+        hiddenBits mode is explained here <a href="https://hexarcana.ch/b/2024-08-16-base64-beyond-encoding/">
+            https://hexarcana.ch/b/2024-08-16-base64-beyond-encoding/
+        </a>
+        `,
         matcher: (str) => {
             // if there is an = not at the end
             if(str.includes('=') && str.match(/=[a-zA-Z0-9]/)) {
