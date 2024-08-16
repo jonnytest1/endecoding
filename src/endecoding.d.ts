@@ -20,7 +20,7 @@ interface RangeOptions {
 }
 interface CheckboxOtions {
     type: "checkbox"
-    defaultV?: "on"
+    defaultV?: "on" | "off"
 }
 
 

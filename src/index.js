@@ -486,7 +486,7 @@ async function analyzeFile(file) {
 
     };
     textInput.oninput = async (e) => {
-        if(queryPicked.some(q => q.yIndex.includes('aes'))) {
+        if(queryPicked.some(q => q.yIndex ? `${q.yIndex}`.includes('aes') : false)) {
             if(inputTimeout) {
                 clearTimeout(inputTimeout);
             }
