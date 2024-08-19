@@ -1,5 +1,5 @@
 ///<reference path="index.js"/>
-
+///<reference path="highlight.d.ts"/>
 import { encodings } from './codings';
 //import { queryPicked, updateUrl } from './index';
 import { Parameter } from './parameter';

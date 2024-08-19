@@ -39,7 +39,32 @@ function manualDecodeHiddenBits(line) {
         }
     }
 }
+/**
+ * @param {string} line
+ */
+function decodeInvalidChars(line) {
+    let invalidChars = [];
+    let chars = [];
 
+    let ct = 0;
+    for(const element of line) {
+        if(element === "=") {
+            break;
+        }
+        const binary = table[element];
+        if(binary) {
+            ct++;
+            chars.push(element);
+        } else {
+            invalidChars.push({
+                ct: ct,
+                char: element
+            });
+            ct = 0;
+        }
+    }
+    return { base64: atob(chars.join("")), invalidChars };
+}
 
 
 /**@type {Array<Encoding>} */
@@ -97,7 +122,7 @@ const ascii = [
             return isBase64;
         },
         fnc: (str, c, t) => {
-            if(t.currentParameter.options.hiddenBits) {
+            if(t.currentParameter.options?.hiddenBits) {
                 /**
                  * @type {Array<string>}
                  */
@@ -120,6 +145,24 @@ const ascii = [
                     chars += String.fromCharCode(parseInt(substr, 2));
                 }
                 return chars;
+            } else if(t.currentParameter.options?.invalidCharCounts) {
+                /**
+                 * @type {Array<string>}
+                 */
+                const invalidChars = [];
+
+
+
+                str.split(/\r?\n/).forEach(line => {
+                    const bits = decodeInvalidChars(line);
+                    if(bits) {
+                        invalidChars.push(bits.invalidChars.map(c => {
+                            return c.ct;
+                        }).join(" "));
+                    }
+                });
+
+                return invalidChars.join("\n");
 
             }
             return str.split(/\r?\n/).map(line => {
@@ -129,6 +172,10 @@ const ascii = [
         },
         options: {
             hiddenBits: {
+                type: "checkbox",
+                defaultV: "off"
+            },
+            invalidCharCounts: {
                 type: "checkbox",
                 defaultV: "off"
             }

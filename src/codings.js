@@ -195,6 +195,10 @@ function getEncodings() {
                 }
                 out.textContent = "shift (" + shiftVal + ")";
 
+                if(isNaN(shiftVal)) {
+                    return "ERROR: invalid shift";
+                }
+
                 return str.split("")
                     .map(s => {
                         const char0indx = s.charCodeAt(0) - aOff;

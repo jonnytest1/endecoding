@@ -15,25 +15,31 @@ const ascii = [
         nameHTML: 'ascii to string',
         key: "asciitostr",
         title: "convert ascii to string (space seperated or 2 chars each)",
-        fnc: str => {
-            let t = '';
+        fnc: (str, c, textO) => {
 
+
+            let chArray = str.split('');
             if(str.split(' ').length > str.length / 5 || str.length < 5) {
-                return str.split(' ')
-                    .map(char => String.fromCharCode(+char))
-                    .join('');
+                chArray = str.split(' ');
             }
+            let t = '';
+            for(let i = 0; i < chArray.length; i += 2) {
 
-            let ar = str.split('');
-            for(let i = 0; i < ar.length; i += 2) {
-                if(+ar[i] < 3) {
-                    t += String.fromCharCode((+ar[i] * 100) + (+ar[i + 1] * 10) + ((+ar[i + 2]) * 1));
+                if(textO.currentParameter.options.combineFrom2Hex) {
+                    t += String.fromCharCode(parseInt(chArray[i] + chArray[i + 1], 16));
+                } else if(+chArray[i] < 3) {
+                    t += String.fromCharCode((+chArray[i] * 100) + (+chArray[i + 1] * 10) + ((+chArray[i + 2]) * 1));
                     i++;
                 } else {
-                    t += String.fromCharCode(+ar[i] * 10) + (+ar[i + 1] | 0);
+                    t += String.fromCharCode(+chArray[i] * 10) + (+chArray[i + 1] | 0);
                 }
             }
             return t;
+        }, options: {
+            combineFrom2Hex: {
+                type: "checkbox",
+                defaultV: "off"
+            }
         }
     },
     {
