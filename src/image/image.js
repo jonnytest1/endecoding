@@ -24,6 +24,7 @@ export const imageConversions = [
 
                 currentImage = new Image();
                 currentImage.src = str;
+                currentImage.classList.add("re-invert-image");
                 document.body.appendChild(currentImage);
             } else if(currentOperation == "dataurl") {
                 const canvas = document.createElement("canvas");

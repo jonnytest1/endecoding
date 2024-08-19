@@ -457,7 +457,7 @@ async function analyzeFile(file) {
             textInput.placeholder = " -- analyzing image --";
             txtImage?.remove();
             txtImage = document.createElement("img");
-
+            txtImage.classList.add("re-invert-image");
             txtImage.src = URL.createObjectURL(imageFile);
 
             txtImage.onload = async () => {

@@ -192,4 +192,8 @@ code.hljs {
     * {
         color: rgb(4 172 183);
     }
+
+    .re-invert-image {
+        filter: invert(1) hue-rotate(180deg);
+    }
 }
