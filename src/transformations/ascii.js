@@ -19,19 +19,31 @@ const ascii = [
 
 
             let chArray = str.split('');
+
+            if(!str.trim().length) {
+                return str;
+            }
+
+            let spaceSeparated = false;
             if(str.split(' ').length > str.length / 5 || str.length < 5) {
                 chArray = str.split(' ');
+                spaceSeparated = true;
             }
             let t = '';
-            for(let i = 0; i < chArray.length; i += 2) {
+            for(let i = 0; i < chArray.length; i++) {
 
                 if(textO.currentParameter.options.combineFrom2Hex) {
                     t += String.fromCharCode(parseInt(chArray[i] + chArray[i + 1], 16));
-                } else if(+chArray[i] < 3) {
+                    i++;
+                } else if(spaceSeparated) {
+                    t += String.fromCharCode(+chArray[i]);
+                } else if(+chArray[i] < 3 && i + 2 < chArray.length) {
                     t += String.fromCharCode((+chArray[i] * 100) + (+chArray[i + 1] * 10) + ((+chArray[i + 2]) * 1));
                     i++;
-                } else {
+                    i++;
+                } else if(i + 1 < chArray.length) {
                     t += String.fromCharCode(+chArray[i] * 10) + (+chArray[i + 1] | 0);
+                    i++;
                 }
             }
             return t;

@@ -293,12 +293,12 @@ async function analyzeFile(file) {
         updateUrl();
     };
     /**
-     * @type {number}
+     * @type {NodeJS.Timeout}
      */
     let inputTimeout;
 
     /**
-     * @type {number}
+     * @type {NodeJS.Timeout}
      */
     let checkInterval = undefined;
 
