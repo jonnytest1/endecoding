@@ -60,8 +60,14 @@ export class TextOutput {
         if(str === 'ERROR') {
             return 'ERROR';
         }
+        /**
+         * @type {Parameters<Encoding["fnc"]>}
+         */
+        const fncArgs = [str, this.conversionElement, this, {
+            parameters: this.currentParameter?.options ?? {}
+        }];
 
-        this.convertedText = await this.converter.fnc.call(this.converter, str, this.conversionElement, this);
+        this.convertedText = await this.converter.fnc.call(this.converter, ...fncArgs);
         return this.convertedText;
 
     }

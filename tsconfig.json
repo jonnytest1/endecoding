@@ -5,6 +5,7 @@
         "noEmit": true,
         "noImplicitAny": true,
         "noUnusedLocals": true,
+        "strictNullChecks": true,
         "lib": [
             "DOM",
             "DOM.Iterable",

@@ -8,6 +8,7 @@ import { imageConversions } from './image/image';
 import morse from './transformations/morse';
 import { rsa } from './node-forge/rsa';
 import { crt } from './node-forge/cert';
+import gpg from './transformations/opengpg';
 
 /**
  * @type {Record<number,string>}
@@ -34,6 +35,7 @@ function getEncodings() {
         ...rsa,
         ...hashes,
         ...crt,
+        ...gpg,
         {
             nameHTML: 'urlencode',
             key: 'urlenc',
@@ -54,7 +56,7 @@ function getEncodings() {
                     if(htmlEncodeTable[c.charCodeAt(0)]) {
                         return `&${htmlEncodeTable[c.charCodeAt(0)]};`;
                     }
-                    if(ref.currentParameter.options.replaceUtf8 && c.charCodeAt(0) > 128) {
+                    if(ref?.currentParameter?.options?.replaceUtf8 && c.charCodeAt(0) > 128) {
                         return '\\u' + c.charCodeAt(0)
                             .toString(16)
                             .toUpperCase()
@@ -185,28 +187,52 @@ function getEncodings() {
             nameHTML: "letter shift",
             title: "shift letters in the alphabet",
             key: "shift",
-            fnc: (str, out, context) => {
+            matcher: (str) => {
+                const rotMatch = str.match(/ROT(?<count>\d{1,2}) /i);
+                if(rotMatch?.groups?.count) {
+                    return {
+                        amount: rotMatch?.groups?.count
+                    };
+                }
+                return false;
+
+            },
+            fnc: (str, out, context, opts) => {
 
                 const aOff = 97;
-
-                let shiftVal = +context.currentParameter.options.amount;
-                if(context.currentParameter.options.invert) {
+                const bigAOff = 65;
+                if(!opts.parameters?.amount) {
+                    return str;
+                }
+                let shiftVal = +opts.parameters?.amount;
+                if(context?.currentParameter?.options.invert) {
                     shiftVal *= -1;
                 }
-                out.textContent = "shift (" + shiftVal + ")";
+                if(out) {
+                    out.textContent = "shift (" + shiftVal + ")";
+                }
 
                 if(isNaN(shiftVal)) {
                     return "ERROR: invalid shift";
                 }
+                const rotMatch = str.match(/(?<start>ROT(?<count>\d{1,2}) )/i);
+                if(rotMatch?.groups?.start) {
+                    str = str.substring(rotMatch?.groups?.start.length);
+                }
 
                 return str.split("")
                     .map(s => {
-                        const char0indx = s.charCodeAt(0) - aOff;
-                        let newChar = (char0indx + shiftVal) % 26;
-                        while(newChar < 0) {
-                            newChar += 26;
+                        if(s.match(/[a-zA-Z]/)) {
+                            const isBig = s == s.toUpperCase();
+                            const offsetChar = isBig ? bigAOff : aOff;
+                            const char0indx = s.charCodeAt(0) - offsetChar;
+                            let newChar = (char0indx + shiftVal) % 26;
+                            while(newChar < 0) {
+                                newChar += 26;
+                            }
+                            return String.fromCharCode(newChar + offsetChar);
                         }
-                        return String.fromCharCode(newChar + aOff);
+                        return s;
                     })
                     .join("");
             },
@@ -229,8 +255,11 @@ function getEncodings() {
                 return prompt('write a function that returns a string', queryValue || 'str => ');
             },
             fnc: (str, out, context) => {
-                if(context.initialRun) {
+                if(!context || context?.initialRun) {
                     throw new Error('initial run doenst allow \'custom\' because custom code can be injected in the url - run anyways by temporarily changing the initial text');
+                }
+                if(!out?.val) {
+                    return str;
                 }
                 let evl = out.val;
                 out.textContent = 'custom :' + evl;
@@ -241,9 +270,12 @@ function getEncodings() {
             nameHTML: 'regex',
             onchoose: queryValue => {
                 return prompt('write a matcher string', queryValue || '')
-                    .replace(/\\n/gm, '\n');
+                    ?.replace(/\\n/gm, '\n');
             },
             fnc: (str, out) => {
+                if(!out?.val) {
+                    return str;
+                }
                 let stringMatch = out.val;
                 out.textContent = 'regex :' + stringMatch;
 
@@ -330,7 +362,9 @@ function getEncodings() {
                             }
                             //tWords.push(`00100000`); // space
                         });
-                        el.textContent = `${name} to dec            => 8bit char split`;
+                        if(el) {
+                            el.textContent = `${name} to dec            => 8bit char split`;
+                        }
                         words = tWords;
                     }
                 }
@@ -361,8 +395,8 @@ function getEncodings() {
         nameHTML: "radix",
         fnc: (str, o, t) => {
             let words = str.split(' ');
-            const from = +t.currentParameter.options.from || 2;
-            const to = +t.currentParameter.options.to || 10;
+            const from = +(t?.currentParameter?.options?.from || 2);
+            const to = +(t?.currentParameter?.options?.to || 10);
             let name = `radix: ${from}`;
             if(from === 16) {
                 name = 'HEX';
@@ -373,8 +407,9 @@ function getEncodings() {
             } else {
                 name += ` -> ${to}`;
             }
-
-            o.textContent = `${name}`;
+            if(o) {
+                o.textContent = `${name}`;
+            }
             if(from === 2) {
                 if(words.every(w => w.length % 8 === 0)) {
                     /**
@@ -387,7 +422,9 @@ function getEncodings() {
                         }
                         //tWords.push(`00100000`); // space
                     });
-                    o.textContent = `${name} => 8bit char split`;
+                    if(o) {
+                        o.textContent = `${name} => 8bit char split`;
+                    }
                     words = tWords;
                 }
             }

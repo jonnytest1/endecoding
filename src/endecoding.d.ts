@@ -33,6 +33,11 @@ type Option = (SelectOption | RangeOptions | CheckboxOtions | {
 }
 
 
+interface EncodingFncOptions {
+    parameters: Record<string, string>
+}
+
+
 interface Encoding {
     /**
      * name of the encoding as shown- can interpret html !! please dont make any xss 👀
@@ -49,7 +54,7 @@ interface Encoding {
     /**
      * transformation function
      */
-    fnc: (this: Encoding, str: string, output?: import("./textOutput").HTMLConvElement, textOuptut?: import("./textOutput").TextOutput) => string | Promise<string>
+    fnc: (this: Encoding, str: string, output: import("./textOutput").HTMLConvElement | undefined, textOuptut: import("./textOutput").TextOutput | undefined, opts: EncodingFncOptions) => string | Promise<string>
     /**
      * fucntion to call when it is selected (try to use options where possible instead ⬇️)
      */

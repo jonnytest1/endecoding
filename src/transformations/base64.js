@@ -121,8 +121,8 @@ const ascii = [
 
             return isBase64;
         },
-        fnc: (str, c, t) => {
-            if(t.currentParameter.options?.hiddenBits) {
+        fnc: (str, c, t, opts) => {
+            if(t?.currentParameter?.options?.hiddenBits) {
                 /**
                  * @type {Array<string>}
                  */
@@ -145,7 +145,7 @@ const ascii = [
                     chars += String.fromCharCode(parseInt(substr, 2));
                 }
                 return chars;
-            } else if(t.currentParameter.options?.invalidCharCounts) {
+            } else if(t?.currentParameter?.options?.invalidCharCounts) {
                 /**
                  * @type {Array<string>}
                  */
@@ -166,7 +166,12 @@ const ascii = [
 
             }
             return str.split(/\r?\n/).map(line => {
-                return atob(line);
+                const decoded = atob(line);
+
+                if(opts.parameters.unescape !== "") {
+                    return decodeURIComponent(escape(decoded));
+                }
+                return decoded;
             }).join("\n");
 
         },
@@ -178,6 +183,10 @@ const ascii = [
             invalidCharCounts: {
                 type: "checkbox",
                 defaultV: "off"
+            },
+            "unescape": {
+                type: "checkbox",
+                defaultV: "on"
             }
         }
     },

@@ -41,16 +41,22 @@ async function recreate(text, amount, initial = false) {
     /**@type {Array<TextOutput>} */
     let outputs = [];
     for(let i = 0; i < amount; i++) {
-        const encodingRef = queryPicked[i] ? queryPicked[i].valueOf() : 0;
+        const encodingRef = queryPicked[i]?.valueOf() ?? 0;
         /**
          * @type {Encoding}
          */
         let pickedConverter;
         if(isNaN(+encodingRef)) {
-            pickedConverter = encodings.find(encoding => encoding.key === encodingRef);
+            const matchedConverter = encodings.find(encoding => encoding.key === encodingRef);
+            if(matchedConverter) {
+                pickedConverter = matchedConverter;
+            } else {
+                pickedConverter = encodings[+encodingRef];
+            }
         } else {
             pickedConverter = encodings[+encodingRef];
         }
+
 
         let output = new TextOutput(pickedConverter, i, queryPicked, initial, context);
 
@@ -96,10 +102,16 @@ function updateUrl() {
     }
     if(url.href.length < 4000) {
         window.history.pushState(undefined, '', url.href);
+    } else {
+        sessionStorage.setItem("str", url.href);
     }
 }
 
-const currentUrl = new URL(location.href);
+
+
+
+const urlString = sessionStorage.getItem("str") ?? location.href;
+let currentUrl = new URL(urlString);
 
 /**@type {Array<Parameter>} */
 let queryPicked = [];
@@ -111,7 +123,8 @@ for(let i = 0; i < 50; i++) {
 
         [...currentUrl.searchParams.keys()].forEach(optionKey => {
             if(optionKey.startsWith(`${i}_`)) {
-                queryPicked[i].options[optionKey.replace(`${i}_`, "")] = currentUrl.searchParams.get(optionKey);
+                const optionsKeyWithoutParam = optionKey.replace(`${i}_`, "");
+                queryPicked[i].options[optionsKeyWithoutParam] = currentUrl.searchParams.get(optionKey);
             }
         });
 
@@ -420,29 +433,44 @@ async function analyzeFile(file) {
                 return e;
             });
             codingsCopy.sort((a, b) => { return (b.matcherPrio ?? 0) - (a.matcherPrio ?? 0); });
-            for(let coding of codingsCopy) {
-                try {
-                    const matched = coding.matcher?.(textValue, (columnIndex, rowIndex) => {
-                        amountValue = Math.max(amountValue, columnIndex + 1);
-                        Parameter.setIndex(columnIndex, rowIndex, queryPicked);
-                    });
+            let found = true;
+            let index = 0;
+            let matchingTextValue = textValue;
+            while(found) {
+                found = false;
+                for(let coding of codingsCopy) {
+                    try {
+                        const matched = coding.matcher?.(matchingTextValue, (columnIndex, rowIndex) => {
+                            amountValue = Math.max(amountValue, columnIndex + 1);
+                            Parameter.setIndex(columnIndex, rowIndex, queryPicked);
+                        });
 
 
-                    if(matched) {
-                        /**
-                         * @type {Record<string,string>|undefined}
-                         */
-                        let params = undefined;
-                        if(typeof matched === "object") {
-                            params = matched;
+                        if(matched) {
+                            matchingTextValue = await coding.fnc(matchingTextValue, undefined, undefined, {
+                                parameters: typeof matched === "object" ? matched : {}
+                            });
+                            found = true;
+                            amountValue = Math.max(amountValue, index + 1);
+                            /**
+                             * @type {Record<string,string>|undefined}
+                             */
+                            let params = undefined;
+                            if(typeof matched === "object") {
+                                params = matched;
+                            }
+                            Parameter.setIndex(index, coding.key ?? coding.__index, queryPicked, params);
+                            break;
                         }
-                        Parameter.setIndex(0, coding.key ?? coding.__index, queryPicked, params);
-                        break;
+                    } catch(e) {
+                        // if matcher throws treat as unmatched
                     }
-                } catch(e) {
-                    // if matcher throws treat as unmatched
+                }
+                if(found) {
+                    index++;
                 }
             }
+
             textInput.value = textValue;
             try {
                 await recreate(textValue, amountValue);
