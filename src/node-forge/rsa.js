@@ -50,24 +50,24 @@ export const rsa = [
                 title: "will use this text in case key is used for input"
             }
         },
-        fnc: (str, out, ref) => {
+        fnc: (str, out, ref, opts) => {
             /**
-             * @type {PrivateKey}
+             * @type {PrivateKey|undefined}
              */
             let priv;
             /**
-             * @type {PublicKey}
+             * @type {PublicKey|undefined}
              */
             let pub;
 
             let contentData = str;
 
-            if(ref.currentParameter.options.data) {
-                contentData = ref.currentParameter.options.data;
+            if(opts.parameters.data) {
+                contentData = opts.parameters.data;
             }
 
-            if(ref.currentParameter.options.private_key && !ref.currentParameter.options.private_key.includes("<inherited from")) {
-                priv = forge.pki.privateKeyFromPem(ref.currentParameter.options.private_key);
+            if(opts.parameters.private_key && !opts.parameters.private_key.includes("<inherited from")) {
+                priv = forge.pki.privateKeyFromPem(opts.parameters.private_key);
                 pub = forge.pki.setRsaPublicKey(priv.n, priv.e);
             } else if(str.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
                 priv = forge.pki.privateKeyFromPem(str);
@@ -75,32 +75,40 @@ export const rsa = [
             } else if(str.startsWith("-----BEGIN PUBLIC KEY----")) {
                 pub = forge.pki.publicKeyFromPem(str);
             }
-            if(ref.currentParameter.options.public_key) {
-                pub = forge.pki.publicKeyFromPem(ref.currentParameter.options.public_key);
+            if(opts.parameters.public_key) {
+                pub = forge.pki.publicKeyFromPem(opts.parameters.public_key);
             }
-            if(priv) {
-                keyCache[ref.index] = priv;
-            } else {
-                for(let i = ref.index; i >= 0; i--) {
-                    if(keyCache[i]) {
-                        priv = keyCache[i];
+            if(ref) {
+                if(priv) {
+                    keyCache[ref.index] = priv;
+                } else {
+                    for(let i = ref.index; i >= 0; i--) {
+                        if(keyCache[i]) {
+                            priv = keyCache[i];
 
-                        const inputEl = ref.optionsElement?.querySelector("#option_private_key")?.querySelector("input");
-                        if(inputEl) {
-                            inputEl.value = `<inherited from #${i}>`;
+                            const inputEl = ref.optionsElement?.querySelector("#option_private_key")?.querySelector("input");
+                            if(inputEl) {
+                                inputEl.value = `<inherited from #${i}>`;
+                            }
+
+                            break;
                         }
-
-                        break;
                     }
                 }
             }
-            const operation = ref.currentParameter.options.operation;
+            const operation = opts.parameters.operation;
             if(operation === "generate_public_key") {
-                if(!pub) {
+                if(!pub && priv) {
                     pub = forge.pki.setRsaPublicKey(priv.n, priv.e);
+                }
+                if(!pub) {
+                    throw new Error("no public key");
                 }
                 return forge.pki.publicKeyToPem(pub);
             } else if(operation === "encrypt") {
+                if(!pub) {
+                    throw new Error("no public key");
+                }
                 try {
                     const encryptedBytes = pub.encrypt(contentData, "RSA-OAEP", {
                         md: forge.md.sha256.create(),
@@ -116,7 +124,9 @@ export const rsa = [
                     throw e;
                 }
             } else if(operation === "decrypt") {
-
+                if(!priv) {
+                    throw new Error("no private key");
+                }
                 const utf8Str = atob(contentData);
                 const decrypted = priv.decrypt(utf8Str, 'RSA-OAEP', {
                     md: forge.md.sha256.create(),

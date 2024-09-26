@@ -169,7 +169,11 @@ const ascii = [
                 const decoded = atob(line);
 
                 if(opts.parameters.unescape !== "") {
-                    return decodeURIComponent(escape(decoded));
+                    try {
+                        return decodeURIComponent(escape(decoded));
+                    } catch(e) {
+                        // ignore
+                    }
                 }
                 return decoded;
             }).join("\n");

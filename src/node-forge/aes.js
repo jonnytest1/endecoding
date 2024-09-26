@@ -12,7 +12,7 @@ function addSelect(secret, encoding, out, ref) {
     /**
      * @type {Array<string>}
      */
-    let previousSecrets = JSON.parse(localStorage.getItem('aes_secrets')) || [];
+    let previousSecrets = JSON.parse(localStorage.getItem('aes_secrets') ?? "[]") || [];
     if(!previousSecrets.includes(secret)) {
         previousSecrets.push(secret);
         localStorage.setItem('aes_secrets', JSON.stringify(previousSecrets));
@@ -26,6 +26,9 @@ function addSelect(secret, encoding, out, ref) {
     })}
     </select>`;
     const selectElement = out.querySelector('select');
+    if(!selectElement) {
+        throw new Error("failed adding select");
+    }
     selectElement.onclick = e => {
         e.stopPropagation();
     };
@@ -57,8 +60,8 @@ function base64ToArrayBuffer(base64) {
  */
 function decrypt(byteBuffer, secret, ivAtStart = false) {
     /**
-               * @type {ForgeBuffer}
-               */
+     * @type {ForgeBuffer|undefined}
+     */
     let forgeIvBuffer;
 
     let startOffset = 0;
@@ -85,7 +88,9 @@ function decrypt(byteBuffer, secret, ivAtStart = false) {
         forgeIvBuffer = forge.util.createBuffer(ivBuffer);
         endOFfset -= ivLength;
     }
-
+    if(!forgeIvBuffer) {
+        throw new Error("no iv buffer 🤷🏻‍♂️");
+    }
 
     const tagBuffer = byteBuffer.slice(endOFfset - tagLength, endOFfset);
     const forgeTagBuffer = forge.util.createBuffer(tagBuffer);
@@ -101,7 +106,7 @@ function decrypt(byteBuffer, secret, ivAtStart = false) {
     const decipher = forge.cipher.createDecipher('AES-GCM', key);
 
     decipher.start({
-        iv: forgeIvBuffer.data,
+        iv: forgeIvBuffer?.data,
         tagLength: 128, // optional, defaults to 128 bits
         tag: forgeTagBuffer.data // authentication tag from encryption
     });
@@ -110,7 +115,7 @@ function decrypt(byteBuffer, secret, ivAtStart = false) {
     return decipher;
 }
 /**
- * @type {string}
+ * @type {string|undefined}
  */
 let matchedSecret;
 
@@ -120,10 +125,16 @@ const aes = [
         nameHTML: 'aes encrypt',
         title: "aes encrypt (iv,salt,data,tag)",
         key: 'aesenc',
-        onchoose: queryValue => prompt('aes secret (kept in localStorage)', queryValue || ''),
-        fnc: function(str, out, ref) {
-            let secret = out.val;
-            addSelect(secret, this, out, ref);
+        onchoose: queryValue => prompt('aes secret (kept in localStorage)', queryValue || '') ?? "",
+        fnc: function(str, out, ref, opts) {
+            let secret = out?.val;
+
+            if(secret && typeof secret === "string" && out && ref) {
+                addSelect(secret, this, out, ref);
+            }
+            if(typeof secret !== "string") {
+                return str;
+            }
 
             const iv = forge.random.getBytesSync(12);
 
@@ -142,14 +153,14 @@ const aes = [
             const tag = cipher.mode.tag;
 
             const encryptedBuffer = forge.util.createBuffer("");
-            if(ref.currentParameter.options.ivAtStart) {
+            if(opts.parameters.ivAtStart) {
                 encryptedBuffer.putBytes(iv);
             }
             encryptedBuffer.putBytes(salt);
             encryptedBuffer.putBytes(encrypted.data);
             encryptedBuffer.putBytes(tag.data);
 
-            if(!ref.currentParameter.options.ivAtStart) {
+            if(!opts.parameters.ivAtStart) {
                 encryptedBuffer.putBytes(iv);
             }
             const encodedB64 = forge.util.encode64(encryptedBuffer.data);
@@ -168,7 +179,7 @@ const aes = [
             /**
              * @type {Array<string>}
              */
-            let previousSecrets = JSON.parse(localStorage.getItem('aes_secrets')) || [];
+            let previousSecrets = JSON.parse(localStorage.getItem('aes_secrets') ?? "[]") || [];
 
             for(const secret of previousSecrets) {
                 const byteBuffer = base64ToArrayBuffer(str);
@@ -196,21 +207,26 @@ const aes = [
                     };
                 }
             }
-
+            return false;
         },
 
-        onchoose: queryValue => prompt('aes secret (kept in localStorage)', queryValue || ''),
-        fnc: function(str, out, ref) {
-            if(matchedSecret) {
+        onchoose: queryValue => prompt('aes secret (kept in localStorage)', queryValue || '') ?? "",
+        fnc: function(str, out, ref, opts) {
+            if(matchedSecret && out) {
                 out.val = matchedSecret;
                 matchedSecret = undefined;
             }
-            let secret = out.val;
-            addSelect(secret, this, out, ref);
+            let secret = out?.val;
+
+            if(secret && typeof secret === "string" && out && ref) {
+                addSelect(secret, this, out, ref);
+            }
 
             const byteBuffer = base64ToArrayBuffer(str);
-
-            const decipher = decrypt(byteBuffer, secret, !!ref.currentParameter.options.ivAtStart);
+            if(!secret || typeof secret !== "string") {
+                return str;
+            }
+            const decipher = decrypt(byteBuffer, secret, !!opts.parameters.ivAtStart);
 
             const pass = decipher.finish();
             if(pass) {

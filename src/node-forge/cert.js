@@ -16,7 +16,7 @@ export const crt = [
             let crt;
             if(trimmedStr.startsWith("-----BEGIN CERTIFICATE-----")) {
                 crt = forge.pki.certificateFromPem(trimmedStr);
-                if(crt) {
+                if(crt && ref) {
                     keyCache[ref.index] = crt;
                 }
                 let hash = forge.md.sha256.create();
@@ -73,6 +73,7 @@ export const crt = [
                     modulus: privateKey.n.toString()
                 }, undefined, "  ");
             }
+            return "";
         },
         matcher: (str) => {
             str = str.trim();

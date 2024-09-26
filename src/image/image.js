@@ -11,8 +11,8 @@ export const imageConversions = [
         key: 'image',
         matcherPrio: 10,
         matcher: str => str.startsWith("/9j/") || str.startsWith("iVBORw") || str.startsWith("data:image/"),
-        fnc: (str, el, out) => {
-            const currentOperation = out.currentParameter.options.operation || "preview";
+        fnc: (str, el, out, opts) => {
+            const currentOperation = opts.parameters.operation || "preview";
             currentImage?.remove();
             if(currentOperation === "preview") {
                 if(str.startsWith("/9j/")) {
@@ -29,12 +29,17 @@ export const imageConversions = [
             } else if(currentOperation == "dataurl") {
                 const canvas = document.createElement("canvas");
 
-                let image = out.context.image;
-
+                let image = out?.context?.image;
+                if(!image) {
+                    return str;
+                }
                 canvas.width = image.width;
                 canvas.height = image.height;
 
                 const context = canvas.getContext("2d");
+                if(!context) {
+                    return str;
+                }
                 context.drawImage(image, 0, 0);
 
                 return canvas.toDataURL();

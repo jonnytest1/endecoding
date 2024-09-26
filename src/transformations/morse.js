@@ -68,7 +68,7 @@ const morse = [{
         return str.toLowerCase()
             .split('')
             .map(c => Object.entries(letters)
-                .find(entry => entry[1] === c)[0])
+                ?.find(entry => entry[1] === c)?.[0])
             .join(' ');
     }
 }, {

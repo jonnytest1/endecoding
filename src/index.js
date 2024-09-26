@@ -119,27 +119,35 @@ for(let i = 0; i < 50; i++) {
     const key = `${i}`;
     if(currentUrl.searchParams.has(key)) {
         const iVal = currentUrl.searchParams.get(key);
-        queryPicked[i] = new Parameter(i, iVal);
+
+        queryPicked[i] = new Parameter(i, iVal ?? undefined);
 
         [...currentUrl.searchParams.keys()].forEach(optionKey => {
             if(optionKey.startsWith(`${i}_`)) {
                 const optionsKeyWithoutParam = optionKey.replace(`${i}_`, "");
-                queryPicked[i].options[optionsKeyWithoutParam] = currentUrl.searchParams.get(optionKey);
+                const paramOption = currentUrl.searchParams.get(optionKey);
+                if(paramOption) {
+                    queryPicked[i].options[optionsKeyWithoutParam] = paramOption;
+                }
             }
         });
 
     }
 }
 /**@type {HTMLTextAreaElement} */
+// @ts-ignore
 let textInput = document.querySelector('#textInput');
 textInput.addEventListener('dragover', event => {
     event.preventDefault();
 });
 /**@type {HTMLInputElement} */
+// @ts-ignore
 const amountInput = document.querySelector('#amount');
 /**@type {HTMLInputElement} */
+// @ts-ignore
 const matcherInput = document.querySelector('#matcher');
 /**@type {HTMLImageElement} */
+// @ts-ignore
 let loadingImage = document.querySelector('#loadingImage');
 
 //finc encoding with criteria
@@ -219,9 +227,13 @@ async function analyzeFile(file) {
      */
     let analyzable;
     if(file instanceof HTMLCanvasElement) {
-        analyzable = await new Promise(res => {
+        analyzable = await new Promise((res, err) => {
             file.toBlob(blob => {
-                res(URL.createObjectURL(blob));
+                if(blob) {
+                    res(URL.createObjectURL(blob));
+                } else {
+                    err("no blob");
+                }
             });
         });
     } else if(file instanceof HTMLImageElement) {
@@ -283,9 +295,9 @@ async function analyzeFile(file) {
 
 
 (function setInitVariables() {
-    let amountValue = currentUrl.searchParams.has('amount') ? +currentUrl.searchParams.get('amount') : 1;
-    let textValue = currentUrl.searchParams.has('text') ? currentUrl.searchParams.get('text') : undefined;
-    let matcherValue = currentUrl.searchParams.has('matcher') ? currentUrl.searchParams.get('matcher') : undefined;
+    let amountValue = +(currentUrl.searchParams.get('amount') ?? 1);
+    let textValue = currentUrl.searchParams.get('text') ?? "";
+    let matcherValue = currentUrl.searchParams.get('matcher') ?? "";
 
     /**
      * @type {HTMLImageElement}
@@ -306,19 +318,19 @@ async function analyzeFile(file) {
         updateUrl();
     };
     /**
-     * @type {NodeJS.Timeout}
+     * @type {NodeJS.Timeout|undefined}
      */
     let inputTimeout;
 
     /**
-     * @type {NodeJS.Timeout}
+     * @type {NodeJS.Timeout|undefined}
      */
     let checkInterval = undefined;
 
     textInput.addEventListener('drop', async event => {
         event.preventDefault();
         loadingImage.style.visibility = 'visible';
-        const file = event.dataTransfer.items[0];
+        const file = event.dataTransfer?.items[0];
         if(checkInterval) {
             clearInterval(checkInterval);
             checkInterval = undefined;
@@ -326,7 +338,7 @@ async function analyzeFile(file) {
         if(!queryPicked[0]?.yIndex) {
             Parameter.setIndex(0, 1, queryPicked);
         }
-        if(file.kind === "file" && "getAsFileSystemHandle" in file) {
+        if(file?.kind === "file" && "getAsFileSystemHandle" in file && file.getAsFileSystemHandle) {
             const handle = await file.getAsFileSystemHandle();
 
             const fileData = await handle.getFile();
@@ -357,7 +369,7 @@ async function analyzeFile(file) {
                 }
             });
         } else {
-            file.getAsFile().arrayBuffer()
+            file?.getAsFile()?.arrayBuffer()
                 .then(async buffer => {
                     const dataArray = [...new Uint8Array(buffer)];
                     textInput.value = textValue = dataArray.join(' ');
@@ -396,7 +408,7 @@ async function analyzeFile(file) {
 
                 canvas.width = rect.width;
                 canvas.height = rect.height;
-                context.drawImage(preview, 0, 0, rect.width, rect.height);
+                context?.drawImage(preview, 0, 0, rect.width, rect.height);
                 stream.getTracks().forEach(function(track) {
                     track.stop();
                 });
@@ -404,14 +416,16 @@ async function analyzeFile(file) {
                 preview.remove();
 
                 const result = await analyzeFile(canvas);
-
-                textInput.value = result;
-                try {
-                    await recreate(textInput.value, amountValue);
-                } catch(e) {
-                    console.error(e);
+                if(result != undefined) {
+                    textInput.value = result;
+                    try {
+                        await recreate(textInput.value, amountValue);
+                    } catch(e) {
+                        console.error(e);
+                    }
+                    updateUrl();
                 }
-                updateUrl();
+
             });
 
         });
@@ -419,13 +433,13 @@ async function analyzeFile(file) {
 
 
     document.querySelector("#cam")
-        .addEventListener("click", recordText);
+        ?.addEventListener("click", recordText);
 
 
 
     textInput.onpaste = async (e) => {
         e.preventDefault();
-        if(e.clipboardData.types.includes('text/plain')) {
+        if(e.clipboardData?.types.includes('text/plain')) {
             textValue = e.clipboardData.getData('text/plain');
 
             const codingsCopy = encodings.map((e, i) => {
@@ -452,6 +466,7 @@ async function analyzeFile(file) {
                             });
                             found = true;
                             amountValue = Math.max(amountValue, index + 1);
+                            amountInput.value = `${amountValue}`;
                             /**
                              * @type {Record<string,string>|undefined}
                              */
@@ -478,9 +493,13 @@ async function analyzeFile(file) {
 
             }
             updateUrl();
-        } else if(e.clipboardData.types.includes("Files")) {
+        } else if(e.clipboardData?.types.includes("Files")) {
 
-            const imageFile = [...e.clipboardData.items].find(item => item.kind === "file").getAsFile();
+            const imageFile = [...e.clipboardData.items].find(item => item.kind === "file")?.getAsFile();
+            if(!imageFile) {
+                return;
+            }
+
             textInput.value = "";
             textInput.placeholder = " -- analyzing image --";
             txtImage?.remove();
@@ -491,14 +510,15 @@ async function analyzeFile(file) {
             txtImage.onload = async () => {
                 try {
                     const result = await analyzeFile(txtImage);
-
-                    textInput.value = result;
-                    try {
-                        await recreate(textInput.value, amountValue);
-                    } catch(e) {
-                        console.error(e);
+                    if(result !== undefined) {
+                        textInput.value = result;
+                        try {
+                            await recreate(textInput.value, amountValue);
+                        } catch(e) {
+                            console.error(e);
+                        }
+                        updateUrl();
                     }
-                    updateUrl();
                 } catch(e) {
                     console.error(e);
                 }

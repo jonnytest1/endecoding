@@ -9,7 +9,7 @@ import { Parameter } from './parameter';
  *  converter?:Encoding
  *  onclick?:(e:Event)=>any
  *  converterRef?:string;
- *  val?:any
+ *  val?:string | number
  * }} HTMLConvElement
  *
  * @callback Click
@@ -27,6 +27,9 @@ export class TextOutput {
      */
     constructor(converter, index, pickedParameters, initial, context) {
         this.initialRun = initial;
+        /**
+         * @type {TextOutput|null}
+         */
         this.next = null;
         this.converter = converter;
         this.encodings = encodings;
@@ -37,9 +40,12 @@ export class TextOutput {
         this.index = index;
         this.pickedParameters = pickedParameters;
         this.context = context;
+        /**
+         * @type {HTMLElement|null}
+         */
         this.optionsElement = null;
         /**
-         * @type {Parameter|undefined}
+         * @type {Parameter}
          */
         this.currentParameter = this.pickedParameters[this.index] || new Parameter(this.index);
     }
@@ -75,7 +81,7 @@ export class TextOutput {
         const value = await this.convertInputElement();
         if(this.next) {
             this.next.previousText = value;
-            await this.next.recalculate(this.next);
+            await this.next.recalculate();
         }
     }
 
@@ -83,10 +89,12 @@ export class TextOutput {
         console.log(`------ starting print for ${this.previousText} ------`);
         for(let element of this.encodings) {
             try {
-                if(element.onchoose && !this.conversionElement.val) {
+                if(element.onchoose && !this.conversionElement?.val) {
                     continue;
                 }
-                let converted = await element.fnc(this.previousText, this.conversionElement, this);
+                let converted = await element.fnc(this.previousText ?? "", this.conversionElement, this, {
+                    parameters: this.currentParameter?.options ?? {}
+                });
                 console.log(converted);
             } catch(e) {
                 console.log('ERROR', e, this.previousText, this.converter);
@@ -99,14 +107,17 @@ export class TextOutput {
      * @param {Function} updateurl 
      */
     setOptions(updateurl) {
-        [...this.optionsElement.children].forEach(c => c.remove());
+        if(!this.optionsElement) {
+            return;
+        }
+        [...this.optionsElement?.children ?? []].forEach(c => c.remove());
 
         if(this.converter.options) {
 
             const form = document.createElement("form");
-            this.optionsElement.appendChild(form);
+            this.optionsElement?.appendChild(form);
             /**
-             * @type {Set<string>}
+             * @type {Set<string>|undefined}
              */
             let disableOptinos;
 
@@ -167,9 +178,11 @@ export class TextOutput {
                     valInput.value = currentValue;
                 } else if(optObj.type === "text") {
                     valInput.value = currentValue ?? "";
-                    valInput.defaultValue = optObj.defaultV;
+                    if(optObj.defaultV) {
+                        valInput.defaultValue = optObj.defaultV;
+                    }
                     /**
-                     * @type {number}
+                     * @type {NodeJS.Timeout}
                      */
                     let timeout;
                     valInput.addEventListener("input", e => {
@@ -183,7 +196,9 @@ export class TextOutput {
                     });
 
                 } else if(optObj.type === "range") {
-                    valInput.defaultValue = optObj.defaultV;
+                    if(optObj.defaultV) {
+                        valInput.defaultValue = optObj.defaultV;
+                    }
                     valInput.step = `${optObj.step || ""}`;
                     valInput.min = `${optObj.min || ""}`;
                     valInput.max = `${optObj.max || ""}`;
@@ -205,7 +220,7 @@ export class TextOutput {
 
             form.addEventListener("change", async e => {
                 this.initialRun = false;
-                const form = this.optionsElement.querySelector("form");
+                const form = this.optionsElement?.querySelector("form");
                 /**
                  * @type {Record<string,string>}
                  */
@@ -243,22 +258,31 @@ export class TextOutput {
      * 
      * @param {HTMLConvElement} element 
      * @param {Encoding} converter 
+     * 
+     * @returns {asserts element is {converter:Encoding}}
      */
     setConverterRow(element, converter) {
         element.innerHTML = converter.nameHTML;
         element.converter = converter;
 
-        if(converter.helpHTML) {
+        const helpHTML = converter.helpHTML;
+        if(helpHTML) {
             const helpElement = document.createElement("button");
             element.appendChild(helpElement);
             helpElement.classList.add("help");
             helpElement.textContent = `ℹ️`;
             helpElement.title = "explanation";
             const helpPopover = document.querySelector("#help-popover");
+            if(!helpPopover) {
+                return;
+            }
             helpElement.addEventListener("click", e => {
                 e.stopPropagation();
                 const popOverContent = helpPopover.querySelector(".content");
-                popOverContent.innerHTML = converter.helpHTML;
+                if(!popOverContent) {
+                    return;
+                }
+                popOverContent.innerHTML = helpHTML;
 
                 popOverContent.querySelectorAll("code").forEach(codeEl => {
                     hljs.highlightElement(codeEl);
@@ -276,11 +300,17 @@ export class TextOutput {
      */
     async addElements(updateUrl) {
         const convRow = document.querySelector('#encodingSelectors');
+        if(!convRow) {
+            return;
+        }
         const newConvList = getDefault(convRow);
         this.conversionElements = [];
         for(let j = 0; j < this.encodings.length; j++) {
             const converter = this.encodings[j];
             const convList = newConvList.querySelector('.converterList');
+            if(!convList) {
+                continue;
+            }
             /**@type {HTMLConvElement} */
             const newConvElement = getDefault(convList);
             this.setConverterRow(newConvElement, converter);
@@ -289,8 +319,8 @@ export class TextOutput {
             }
             newConvElement.converterRef = converter.key || `${j}`;
             newConvElement.onclick = async (e) => {
-                /**@type {HTMLConvElement} */
-                let element = newConvElement;
+
+                const element = newConvElement;
                 this.conversionElements.forEach(el => el.style.backgroundColor = '');
                 element.style.backgroundColor = 'lightBlue';
 
@@ -298,7 +328,7 @@ export class TextOutput {
                 this.conversionElement = element;
 
                 Parameter.setIndex(this.index, element.converterRef, this.pickedParameters, {});
-                if(element.converter.onchoose) {
+                if(element.converter?.onchoose) {
                     const chooseParam = this.pickedParameters[this.index] ? this.pickedParameters[this.index].value : undefined;
                     const cutomValue = element.converter.onchoose(chooseParam);
                     this.initialRun = false;
@@ -333,28 +363,43 @@ export class TextOutput {
         convRow.appendChild(newConvList);
 
         const textRow = document.querySelector('#textFields');
+        if(!textRow) {
+            return;
+        }
         const newRow = getDefault(textRow);
-        /**@type {HTMLInputElement} */
+        /**@type {HTMLInputElement|null} */
         this.textField = newRow.querySelector('.textDisplay');
+        if(!this.textField) {
+            return;
+        }
         this.textField.addEventListener("input", () => {
 
             if(this.next) {
-                this.next.previousText = this.textField.value;
-                this.next.recalculate(this.next);
+                this.next.previousText = this.textField?.value;
+                this.next.recalculate();
             }
         });
         textRow.appendChild(newRow);
 
         const printRow = document.querySelector('#printButtons');
+        if(!printRow) {
+            return;
+        }
         const newPrintElement = getDefault(printRow);
-        /**@type {HTMLButtonElement} */
+        /**@type {HTMLButtonElement|null} */
         const button = newPrintElement.querySelector('.printAll');
+        if(!button) {
+            return;
+        }
         button.onclick = () => {
             this.printAll();
         };
         printRow.appendChild(newPrintElement);
 
         const optionsRow = document.querySelector('#options');
+        if(!optionsRow) {
+            return;
+        }
         this.optionsElement = getDefault(optionsRow);
 
         this.setOptions(updateUrl);
@@ -365,7 +410,14 @@ export class TextOutput {
     }
 
     async convertInputElement() {
+        if(!this.textField) {
+            console.error("no textfield");
+            return;
+        }
+
         try {
+
+
             this.textField.style.backgroundColor = 'initial';
             if(this.previousText === undefined) {
                 this.textField.value = '';

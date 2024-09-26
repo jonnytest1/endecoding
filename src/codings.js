@@ -79,7 +79,7 @@ function getEncodings() {
                 const utf8decodedStr = str.replace(/\\u([0-9A-Fa-f]{4})/g, (e, a) => {
                     return String.fromCharCode(parseInt(a, 16));
                 });
-                return new DOMParser().parseFromString(utf8decodedStr, 'text/html').body.textContent;
+                return new DOMParser().parseFromString(utf8decodedStr, 'text/html').body.textContent ?? "";
             }
         }, {
             nameHTML: 'jwt',
@@ -252,7 +252,7 @@ function getEncodings() {
             title: "provide your own function",
             onchoose: function(queryValue) {
 
-                return prompt('write a function that returns a string', queryValue || 'str => ');
+                return prompt('write a function that returns a string', queryValue || 'str => ') ?? "";
             },
             fnc: (str, out, context) => {
                 if(!context || context?.initialRun) {
@@ -270,7 +270,7 @@ function getEncodings() {
             nameHTML: 'regex',
             onchoose: queryValue => {
                 return prompt('write a matcher string', queryValue || '')
-                    ?.replace(/\\n/gm, '\n');
+                    ?.replace(/\\n/gm, '\n') ?? "";
             },
             fnc: (str, out) => {
                 if(!out?.val) {
