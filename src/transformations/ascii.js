@@ -32,7 +32,7 @@ const ascii = [
             let t = '';
             for(let i = 0; i < chArray.length; i++) {
 
-                if(textO.currentParameter.options.combineFrom2Hex) {
+                if(textO?.currentParameter?.options.combineFrom2Hex) {
                     t += String.fromCharCode(parseInt(chArray[i] + chArray[i + 1], 16));
                     i++;
                 } else if(spaceSeparated) {

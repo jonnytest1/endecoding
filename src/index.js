@@ -4,6 +4,7 @@
 /// <reference path="./tesseract.d.ts" />
 /// <reference path="./qrscanner.d.ts" />
 /// <reference path="./polyfill.d.ts" />
+/// <reference path="./zxing.d.ts" />
 
 import { encodings } from './codings';
 import { Parameter } from './parameter';
@@ -225,7 +226,26 @@ async function analyzeFile(file) {
     /**
      * @type {string}
      */
-    let analyzable;
+    let analyzable = "";
+    const reader = new ZXingBrowser.BrowserMultiFormatReader();
+
+
+    /*  const hints = new Map();
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+          ZXing.BarcodeFormat.CODABAR,
+          ZXing.BarcodeFormat.CODE_39,
+  
+          ZXing.BarcodeFormat.CODE_93, ZXing.BarcodeFormat.CODE_128,
+  
+          ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.MAXICODE,
+  
+          ZXing.BarcodeFormat.RSS_14, ZXing.BarcodeFormat.RSS_EXPANDED, ZXing.BarcodeFormat.UPC_A
+  
+          , ZXing.BarcodeFormat.UPC_E, ZXing.BarcodeFormat.UPC_EAN_EXTENSION]);*/
+    /**
+     * @type {Promise<string|null>}
+     */
+    let barCodePr = Promise.resolve(null);
     if(file instanceof HTMLCanvasElement) {
         analyzable = await new Promise((res, err) => {
             file.toBlob(blob => {
@@ -236,18 +256,25 @@ async function analyzeFile(file) {
                 }
             });
         });
+        barCodePr = reader.decodeFromImageUrl(analyzable);
+
     } else if(file instanceof HTMLImageElement) {
         if(!file.complete) {
             throw new Error("image not loaded");
         }
         analyzable = file.src;
+        //hints.set(3, true);
+        // reader.hints = hints;
+        barCodePr = reader.decodeFromImageElement(file).then(res => {
+            return res.text;
+        });
     }
 
     workerLog = true;
     /**
-     * @type {[Result,string]}
+     * @type {[Result,string,string|null]}
      */
-    const [result, qrcode] = await Promise.all([
+    const [result, qrcode, barcode] = await Promise.all([
         new Promise(async (res, err) => {
             const worker = await tesseractWorker;
             worker.recognize(analyzable).then(result => {
@@ -263,7 +290,8 @@ async function analyzeFile(file) {
             }).catch(e => {
                 res(null);
             });
-        })
+        }),
+        barCodePr
     ]);
     workerLog = false;
 
@@ -271,6 +299,8 @@ async function analyzeFile(file) {
 
     if(qrcode) {
         return qrcode;
+    } else if(barcode) {
+        return barcode;
     } else if(result) {
         let words = result.data.words
             .filter(w => w.confidence > 70);
@@ -461,10 +491,15 @@ async function analyzeFile(file) {
 
 
                         if(matched) {
+                            const prevText = matchingTextValue;
                             matchingTextValue = await coding.fnc(matchingTextValue, undefined, undefined, {
                                 parameters: typeof matched === "object" ? matched : {}
                             });
                             found = true;
+                            if(prevText === matchingTextValue) {
+                                found = false;
+                            }
+
                             amountValue = Math.max(amountValue, index + 1);
                             amountInput.value = `${amountValue}`;
                             /**
@@ -481,8 +516,13 @@ async function analyzeFile(file) {
                         // if matcher throws treat as unmatched
                     }
                 }
+
                 if(found) {
                     index++;
+                }
+
+                if(index > 8) {
+                    break;
                 }
             }
 
