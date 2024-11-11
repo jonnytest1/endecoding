@@ -366,13 +366,12 @@ async function analyzeFile(file) {
      * @param {File} imageFile 
      */
     function analyzeContextDAta(imageFile) {
-        imageFile.arrayBuffer()
+        const stringREpr = imageFile.arrayBuffer()
             .then(async buffer => {
                 const dataArray = [...new Uint8Array(buffer)];
-                textInput.value = textValue = dataArray.join(' ');
-                await recreate(textValue, amountValue);
-                updateUrl();
-                loadingImage.style.visibility = 'hidden';
+                //textInput.value = textValue = dataArray.join(' ');
+                return dataArray.map(str => String.fromCharCode(str)).join("");
+
             });
         textInput.value = "";
         textInput.placeholder = " -- analyzing image --";
@@ -387,6 +386,8 @@ async function analyzeFile(file) {
                 if(result !== undefined) {
                     textInput.value = result;
 
+                } else {
+                    textInput.value = await stringREpr;
                 }
                 try {
                     await recreate(textInput.value, amountValue);
