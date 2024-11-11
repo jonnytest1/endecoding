@@ -123,7 +123,7 @@ export const imageConversions = [
                 const blob = new Blob([byteArray], { type: 'image/png' });
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = 'yourimage.png';
+                link.download = opts.context.fileName ? `${opts.context.fileName}.png` : 'yourimage.png';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);

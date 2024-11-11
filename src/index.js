@@ -406,6 +406,7 @@ async function analyzeFile(file) {
         document.body.appendChild(txtImage);
 
         context.image = txtImage;
+        context.fileName = imageFile.name;
     }
 
 

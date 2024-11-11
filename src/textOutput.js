@@ -454,7 +454,8 @@ export class TextOutput {
                 textField: this.textField,
                 converter: this.converter,
                 text: this.textField.value,
-                textOutput: this
+                textOutput: this,
+                context: this.context
             });
 
             return converted;

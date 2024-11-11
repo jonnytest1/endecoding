@@ -88,9 +88,13 @@ interface Encoding {
         textOutput: import("./textOutput").TextOutput | undefined
         converter: Encoding,
         text: string
+        context: Context
 
     }): void
 }
 
 
-type Context = { image?: HTMLImageElement } 
+type Context = {
+    image?: HTMLImageElement
+    fileName?: string
+} 
