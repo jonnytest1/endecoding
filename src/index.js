@@ -103,6 +103,7 @@ function updateUrl() {
     }
     if(url.href.length < 4000) {
         window.history.pushState(undefined, '', url.href);
+        sessionStorage.setItem("str", url.href);
     } else {
         sessionStorage.setItem("str", url.href);
     }
@@ -281,6 +282,7 @@ async function analyzeFile(file) {
                 res(result);
             }).catch(e => {
                 console.error(e);
+                res(null);
             });
         }),
         new Promise(async res => {
@@ -291,7 +293,9 @@ async function analyzeFile(file) {
                 res(null);
             });
         }),
-        barCodePr
+        barCodePr.catch(e => {
+            return null;
+        })
     ]);
     workerLog = false;
 
@@ -301,7 +305,7 @@ async function analyzeFile(file) {
         return qrcode;
     } else if(barcode) {
         return barcode;
-    } else if(result) {
+    } else if(result?.data) {
         let words = result.data.words
             .filter(w => w.confidence > 70);
         if(!words.length) {
@@ -357,6 +361,55 @@ async function analyzeFile(file) {
      */
     let checkInterval = undefined;
 
+    /**
+     * 
+     * @param {File} imageFile 
+     */
+    function analyzeContextDAta(imageFile) {
+        imageFile.arrayBuffer()
+            .then(async buffer => {
+                const dataArray = [...new Uint8Array(buffer)];
+                textInput.value = textValue = dataArray.join(' ');
+                await recreate(textValue, amountValue);
+                updateUrl();
+                loadingImage.style.visibility = 'hidden';
+            });
+        textInput.value = "";
+        textInput.placeholder = " -- analyzing image --";
+        txtImage?.remove();
+        txtImage = document.createElement("img");
+        txtImage.classList.add("re-invert-image", "txtimage");
+        txtImage.src = URL.createObjectURL(imageFile);
+
+        txtImage.onload = async () => {
+            try {
+                const result = await analyzeFile(txtImage);
+                if(result !== undefined) {
+                    textInput.value = result;
+
+                }
+                try {
+                    await recreate(textInput.value, amountValue);
+                } catch(e) {
+                    console.error(e);
+                }
+                updateUrl();
+            } catch(e) {
+                console.error(e);
+            }
+            textInput.placeholder = "";
+        };
+        txtImage.style.opacity = "0.2";
+        txtImage.style.position = "absolute";
+        txtImage.style.right = "0px";
+        document.body.appendChild(txtImage);
+
+        context.image = txtImage;
+    }
+
+
+
+
     textInput.addEventListener('drop', async event => {
         event.preventDefault();
         loadingImage.style.visibility = 'visible';
@@ -378,10 +431,7 @@ async function analyzeFile(file) {
             let textCache = dataArray.join(' ');
             textInput.value = textValue = textCache;
 
-            await recreate(textValue, amountValue);
-            updateUrl();
-            loadingImage.style.visibility = 'hidden';
-
+            analyzeContextDAta(fileData);
 
             checkInterval = setInterval(async () => {
 
@@ -391,22 +441,16 @@ async function analyzeFile(file) {
 
                 let newText = dataArray.join(' ');
                 if(newText !== textCache) {
+                    analyzeContextDAta(fileData);
                     textCache = newText;
                     textInput.value = textValue = textCache;
-                    await recreate(textValue, amountValue);
-                    updateUrl();
-                    loadingImage.style.visibility = 'hidden';
                 }
             });
         } else {
-            file?.getAsFile()?.arrayBuffer()
-                .then(async buffer => {
-                    const dataArray = [...new Uint8Array(buffer)];
-                    textInput.value = textValue = dataArray.join(' ');
-                    await recreate(textValue, amountValue);
-                    updateUrl();
-                    loadingImage.style.visibility = 'hidden';
-                });
+            const fileRef = file?.getAsFile();
+            if(fileRef) {
+                analyzeContextDAta(fileRef);
+            }
         }
 
 
@@ -539,37 +583,7 @@ async function analyzeFile(file) {
             if(!imageFile) {
                 return;
             }
-
-            textInput.value = "";
-            textInput.placeholder = " -- analyzing image --";
-            txtImage?.remove();
-            txtImage = document.createElement("img");
-            txtImage.classList.add("re-invert-image");
-            txtImage.src = URL.createObjectURL(imageFile);
-
-            txtImage.onload = async () => {
-                try {
-                    const result = await analyzeFile(txtImage);
-                    if(result !== undefined) {
-                        textInput.value = result;
-                        try {
-                            await recreate(textInput.value, amountValue);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                        updateUrl();
-                    }
-                } catch(e) {
-                    console.error(e);
-                }
-                textInput.placeholder = "";
-            };
-            txtImage.style.opacity = "0.2";
-            txtImage.style.position = "absolute";
-            txtImage.style.right = "0px";
-            document.body.appendChild(txtImage);
-
-            context.image = txtImage;
+            analyzeContextDAta(imageFile);
         }
 
     };

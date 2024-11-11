@@ -1,6 +1,6 @@
 
 interface ForgeBuffer {
-    data: string
+    data: BytesStr
 
     getBytes(): string
 
@@ -8,7 +8,7 @@ interface ForgeBuffer {
 }
 interface Cipher {
     start(optsions: {
-        iv: string
+        iv: BytesStr
         /**
          * defaults to 128
          */
@@ -27,7 +27,7 @@ interface Cipher {
 
 interface Decipher extends Cipher {
     start(optsions: {
-        iv: string
+        iv: BytesStr
         tagLength: number
         tag: string
     }): void
@@ -84,6 +84,11 @@ type MessageDigestRoot = {
 }
 
 interface Cert {
+    sign(priv: PrivateKey): unknown
+    setExtensions(arg0: { name: string; altNames: ({ type: number; value: string } | { type: number; ip: string })[] }[]): unknown
+    setIssuer(attrs: { name: string; value: string }[]): unknown
+    setSubject(attrs: { name: string; value: string }[]): unknown
+    serialNumber: string
     publicKey: PublicKey
     extensions: Array<{
         name: string
@@ -116,6 +121,9 @@ interface ASN {
 }
 
 
+declare const bytesSymbol: unique symbol;
+type BytesStr = string & { [bytesSymbol]: true }
+
 declare const forgeObj: {
     asn1: {
         toDer(asn: ASN): ForgeBuffer
@@ -129,6 +137,8 @@ declare const forgeObj: {
     }
     md: MessageDigestRoot
     pki: {
+        certificateToPem(cert: Cert): string
+        createCertificate(): Cert
         publicKeyToAsn1(publicKey: PublicKey): ASN
         pemToDer(pem: string): ForgeBuffer
         certificateFromPem(pem: string): Cert
@@ -140,15 +150,16 @@ declare const forgeObj: {
         setRsaPublicKey(n: N, e: E): PublicKey
     }
     util: {
+        bytesToHex(arg0: BytesStr): string
         createBuffer(data: ArrayBuffer | string): ForgeBuffer
         encode64(data: string): string
     }
 
     random: {
-        getBytesSync(length: number): string
+        getBytesSync(length: number): BytesStr
     }
     pkcs5: {
-        pbkdf2(secret: string, salt: string, hashIteration: number, length: number, hashMethod: "sha256"): string
+        pbkdf2(secret: string, salt: BytesStr, hashIteration: number, length: number, hashMethod: "sha256"): string
     }
     cipher: {
         createCipher(cipher: "AES-GCM", key: string): Cipher

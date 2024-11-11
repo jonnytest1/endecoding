@@ -46,6 +46,17 @@ export const imageConversions = [
             }
             return str;
         },
+        customizedTextField: (opts) => {
+            const downloadButton = document.createElement("button");
+            downloadButton.textContent = "⬇️";
+            opts.textField.parentElement?.appendChild(downloadButton);
+            downloadButton.style.right = "0px";
+            downloadButton.style.position = "absolute";
+            downloadButton.title = "download";
+            downloadButton.onclick = () => {
+                debugger;
+            };
+        },
         options: {
             operation: {
                 type: "select",

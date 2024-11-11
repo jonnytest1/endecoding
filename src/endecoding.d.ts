@@ -81,6 +81,15 @@ interface Encoding {
     }
 
     __index?: number
+
+
+    customizedTextField?(options: {
+        textField: HTMLInputElement,
+        textOutput: import("./textOutput").TextOutput | undefined
+        converter: Encoding,
+        text: string
+
+    }): void
 }
 
 

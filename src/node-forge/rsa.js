@@ -32,6 +32,10 @@ export const rsa = [
                     text: "hash",
                     value: "hash",
                     disableOptions: new Set(["private_key", "public_key", "data"])
+                }, {
+                    text: "create cert",
+                    value: "crt",
+                    disableOptions: new Set(["private_key", "public_key", "data"])
                 }]
             },
             private_key: {
@@ -167,6 +171,61 @@ export const rsa = [
                     return pubHash;
                 }
 
+            } else if(operation == "crt") {
+                if(!pub && priv) {
+                    pub = forge.pki.setRsaPublicKey(priv.n, priv.e);
+                }
+
+                if(!pub) {
+                    throw new Error("missing public/private key");
+                }
+
+                const crt = forge.pki.createCertificate();
+                crt.publicKey = pub;
+                crt.serialNumber = '01' + forge.util.bytesToHex(forge.random.getBytesSync(19));
+
+                crt.validity.notBefore = new Date();
+                const validityDays = 356 * 10;
+                crt.validity.notAfter = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * (validityDays ?? 1));
+                const attrs = [{
+                    name: 'commonName',
+                    value: 'CN'
+                }];
+                crt.setSubject(attrs);
+                crt.setIssuer(attrs);
+                /**
+                 * @type {Array<string>}
+                 */
+                const altNameDNS = [];
+                /**
+                 * @type {Array<string>}
+                 */
+                const altNameIPs = [];
+
+                // add alt names so that the browser won't complain
+                crt.setExtensions([{
+                    name: 'subjectAltName',
+                    altNames: [
+                        ...(altNameDNS !== undefined ?
+                            altNameDNS.map((uri) => ({ type: 6, value: uri })) :
+                            []
+                        ),
+                        ...(altNameIPs !== undefined ?
+                            altNameIPs.map((uri) => ({ type: 7, ip: uri })) :
+                            []
+                        )
+                    ]
+                }]);
+
+                if(!priv) {
+                    throw new Error("missing private key");
+                }
+                // self-sign certificate
+                crt.sign(priv);
+                const pem = forge.pki.certificateToPem(crt);
+
+
+                return pem;
             }
 
             return str;

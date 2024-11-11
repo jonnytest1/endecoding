@@ -48,6 +48,10 @@ export class TextOutput {
          * @type {Parameter}
          */
         this.currentParameter = this.pickedParameters[this.index] || new Parameter(this.index);
+        /**
+         * @type { HTMLElement|undefined}
+         */
+        this.textFieldContainer = undefined;
     }
 
     /**
@@ -366,20 +370,25 @@ export class TextOutput {
         if(!textRow) {
             return;
         }
-        const newRow = getDefault(textRow);
-        /**@type {HTMLInputElement|null} */
-        this.textField = newRow.querySelector('.textDisplay');
-        if(!this.textField) {
-            return;
-        }
-        this.textField.addEventListener("input", () => {
+        this.textFieldContainer = getDefault(textRow);
 
-            if(this.next) {
-                this.next.previousText = this.textField?.value;
-                this.next.recalculate();
+        if(this.textFieldContainer) {
+
+            /**@type {HTMLInputElement|null} */
+            this.textField = this.textFieldContainer?.querySelector('.textDisplay');
+            if(!this.textField) {
+                return;
             }
-        });
-        textRow.appendChild(newRow);
+
+            this.textField.addEventListener("input", () => {
+
+                if(this.next) {
+                    this.next.previousText = this.textField?.value;
+                    this.next.recalculate();
+                }
+            });
+            textRow.appendChild(this.textFieldContainer);
+        }
 
         const printRow = document.querySelector('#printButtons');
         if(!printRow) {
@@ -414,6 +423,13 @@ export class TextOutput {
             console.error("no textfield");
             return;
         }
+        if(this.textFieldContainer) {
+            for(let i = this.textFieldContainer?.children.length - 1; i >= 0; i--) {
+                if(this.textFieldContainer?.children[i] !== this.textField) {
+                    this.textFieldContainer?.children[i].remove();
+                }
+            }
+        }
 
         try {
 
@@ -434,6 +450,13 @@ export class TextOutput {
             } catch(error) {
                 this.textField.value = converted;
             }
+            this.converter.customizedTextField?.({
+                textField: this.textField,
+                converter: this.converter,
+                text: this.textField.value,
+                textOutput: this
+            });
+
             return converted;
         } catch(error) {
             console.log(error);
